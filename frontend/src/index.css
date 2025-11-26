@@ -1,14 +1,46 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 @layer base {
   :root {
+    /* Font family */
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    
     /* Rendering optimizations */
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    
+    /* Primary color palette */
+    --color-primary-50: #eff6ff;
+    --color-primary-100: #dbeafe;
+    --color-primary-200: #bfdbfe;
+    --color-primary-300: #93c5fd;
+    --color-primary-400: #60a5fa;
+    --color-primary-500: #3b82f6;
+    --color-primary-600: #2563eb;
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
+    --color-primary-900: #1e3a8a;
+    --color-primary-950: #172554;
+    
+    /* Secondary color palette */
+    --color-secondary-50: #f8fafc;
+    --color-secondary-100: #f1f5f9;
+    --color-secondary-200: #e2e8f0;
+    --color-secondary-300: #cbd5e1;
+    --color-secondary-400: #94a3b8;
+    --color-secondary-500: #64748b;
+    --color-secondary-600: #475569;
+    --color-secondary-700: #334155;
+    --color-secondary-800: #1e293b;
+    --color-secondary-900: #0f172a;
+    --color-secondary-950: #020617;
+  }
+
+  html {
+    font-family: var(--font-sans);
   }
 
   body {
@@ -30,11 +62,29 @@
   }
 
   .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700;
+    background-color: var(--color-primary-500);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-600);
+  }
+
+  .btn-primary:active {
+    background-color: var(--color-primary-700);
   }
 
   .btn-secondary {
-    @apply bg-secondary-200 text-secondary-900 hover:bg-secondary-300 active:bg-secondary-400;
+    background-color: var(--color-secondary-200);
+    color: var(--color-secondary-900);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-secondary-300);
+  }
+
+  .btn-secondary:active {
+    background-color: var(--color-secondary-400);
   }
 
   .btn-danger {
@@ -42,11 +92,12 @@
   }
 
   .card {
-    @apply bg-white rounded-lg shadow-card hover:shadow-card-hover transition-shadow duration-200;
+    @apply bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200;
   }
 
   .input {
-    @apply w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:border-transparent;
+    focus-ring-color: var(--color-primary-500);
   }
 
   .input-error {

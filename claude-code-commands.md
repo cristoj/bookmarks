@@ -139,6 +139,7 @@ Crea la estructura base de Cloud Functions en functions/src/:
    - Función validateBookmarkData(data)
    - Usa expresiones regulares apropiadas
 
+
 No implementes las funciones completas aún, solo la estructura base.
 ```
 
@@ -154,6 +155,7 @@ Implementa las Cloud Functions para CRUD de bookmarks:
    - Actualizar conteo de tags
    - Triggerea captureScreenshot (no implementar aún)
    - Retornar bookmark creado
+   - Crear test para validar correcta funcionalidad
 
 2. functions/src/bookmarks/get.ts:
    - Cloud Function: getBookmarks
@@ -163,12 +165,14 @@ Implementa las Cloud Functions para CRUD de bookmarks:
    - Filtros por fecha (where createdAt between)
    - Para búsqueda de texto: filtrar en cliente (Firestore no tiene full-text)
    - Retornar: { data: [], lastDoc, hasMore }
+   - Crear test para validar correcta funcionalidad
 
 3. functions/src/bookmarks/update.ts:
    - Cloud Function: updateBookmark
    - Verificar ownership
    - Actualizar campos: title, description, tags
    - Actualizar conteo de tags (helper updateTagCounts)
+   - Crear test para validar correcta funcionalidad
 
 4. functions/src/bookmarks/delete.ts:
    - Cloud Function: deleteBookmark
@@ -176,11 +180,13 @@ Implementa las Cloud Functions para CRUD de bookmarks:
    - Eliminar screenshot de Storage si existe
    - Actualizar conteo de tags
    - Eliminar documento
+   - Crear test para validar correcta funcionalidad
 
 5. functions/src/bookmarks/tags.ts:
    - Cloud Function: getTags
    - Retornar todos los tags ordenados por count desc
    - Limit 100
+   - Crear test para validar correcta funcionalidad
 
 Usa runWith({ timeoutSeconds: 60, memory: '256MB' }) donde sea necesario.
 Documenta cada función con JSDoc.
@@ -207,21 +213,25 @@ En functions/src/screenshots/capture.ts:
      * goto con waitUntil: 'networkidle2', timeout 30s
      * Esperar 2s adicionales
      * Screenshot PNG, fullPage: false
+   - Crear test para validar correcta funcionalidad
    
 2. Subir a Firebase Storage:
    - Path: screenshots/{userId}/{uuid}.png
    - Metadata: contentType, bookmarkId, capturedAt
    - Generar signed URL con expiración lejana
+   - Crear test para validar correcta funcionalidad
    
 3. Actualizar Firestore:
    - Campo screenshotUrl con la URL
    - Campo screenshotPath con el path (para borrar después)
+   - Crear test para validar correcta funcionalidad
    
 4. Manejo de errores:
    - Try-catch completo
    - Si falla, actualizar bookmark con screenshotUrl: null y screenshotError
    - No lanzar error (no bloquear creación de bookmark)
    - Logging detallado
+   - Crear test para validar correcta funcionalidad
 
 5. Cerrar browser siempre en finally
 
@@ -243,6 +253,7 @@ Cloud Function: retryFailedScreenshots
 - Para cada uno, llamar a captureScreenshot
 - Si falla, incrementar screenshotRetries
 - Logging apropiado
+- Crear test para validar correcta funcionalidad
 
 Esta función es opcional pero útil para recuperar screenshots fallidos.
 ```
@@ -261,22 +272,27 @@ Implementa funciones que llamen a las Cloud Functions usando httpsCallable:
 1. create(data: { url, title, description?, tags? })
    - Llama a createBookmark
    - Retorna bookmark creado
+   - Crear test para validar correcta funcionalidad
 
 2. getAll(filters: { limit?, lastDoc?, tags?, search?, dateFrom?, dateTo? })
    - Llama a getBookmarks
    - Retorna { data, lastDoc, hasMore }
+   - Crear test para validar correcta funcionalidad
 
 3. update(bookmarkId, data: { title?, description?, tags? })
    - Llama a updateBookmark
    - Retorna { success: true }
+   - Crear test para validar correcta funcionalidad
 
 4. delete(bookmarkId)
    - Llama a deleteBookmark
    - Retorna { success: true }
+   - Crear test para validar correcta funcionalidad
 
 5. getTags()
    - Llama a getTags
    - Retorna array de tags
+   - Crear test para validar correcta funcionalidad
 
 Maneja errores apropiadamente y documenta con JSDoc.
 ```
@@ -292,24 +308,29 @@ Crea hooks para gestionar bookmarks con React Query:
    - queryFn llama a bookmarksService.getAll
    - getNextPageParam retorna lastDoc
    - Retorna: { data, fetchNextPage, hasNextPage, isLoading, error }
+   - Crear test para validar correcta funcionalidad
 
 2. frontend/src/hooks/useCreateBookmark.ts:
    - Hook useCreateBookmark() que usa useMutation
    - onSuccess: invalida query 'bookmarks'
    - onError: maneja error
    - Retorna: { create, isLoading, error }
+   - Crear test para validar correcta funcionalidad
 
 3. frontend/src/hooks/useUpdateBookmark.ts:
    - Similar estructura con useMutation
    - Invalida query al tener éxito
+   - Crear test para validar correcta funcionalidad
 
 4. frontend/src/hooks/useDeleteBookmark.ts:
    - Similar estructura
    - Invalida query al tener éxito
+   - Crear test para validar correcta funcionalidad
 
 5. frontend/src/hooks/useTags.ts:
    - Hook useTags() con useQuery
    - Cache de 5 minutos
+   - Crear test para validar correcta funcionalidad
 
 Documenta cada hook y sus retornos.
 ```
@@ -382,6 +403,7 @@ Crea los componentes principales de visualización de bookmarks:
    - Si isLoading: mostrar skeleton loaders (3-6)
    - Si vacío: mensaje "No bookmarks yet"
    - Renderizar BookmarkCard para cada bookmark
+   - Crear test para validar correcta funcionalidad
 
 Usa Tailwind CSS, iconos de lucide-react o similar.
 ```
@@ -411,6 +433,7 @@ Funcionalidad:
 - Disable inputs mientras isLoading
 - Botones: Save y Cancel
 - Mostrar errores de validación
+- Crear test para validar correcta funcionalidad
 
 Diseño:
 - Form limpio y espaciado
@@ -442,17 +465,20 @@ Componentes del filtro:
    - Placeholder: "Search in title or description..."
    - Debounce de 300ms
    - Icon de search
+   - Crear test para validar correcta funcionalidad
 
 2. Selector de tags:
    - Multi-select style "Chosen"
    - Mostrar tags disponibles con count
    - Poder añadir/remover múltiples
    - Badge para cada tag seleccionado
+   - Crear test para validar correcta funcionalidad
 
 3. Selector de rango de fechas:
    - Date input para "from"
    - Date input para "to"
    - Botón para limpiar fechas
+   - Crear test para validar correcta funcionalidad
 
 4. Botón "Clear all filters"
 
@@ -476,11 +502,13 @@ Implementa el scroll infinito para cargar más bookmarks:
    - Retorna ref para el elemento observador
    - Threshold de 0.5 (activar cuando 50% visible)
    - Cleanup apropiado
+   - Crear test para validar correcta funcionalidad
 
 2. Actualizar BookmarkGrid para usar scroll infinito:
    - Añadir div observador al final del grid
    - Mostrar "Loading more..." cuando fetchNextPage
    - Mostrar "No more bookmarks" cuando !hasNextPage
+   - Crear test para validar correcta funcionalidad
 
 Documentar el hook con ejemplos de uso.
 ```
@@ -533,6 +561,7 @@ Funcionalidad:
 3. useBookmarks hook con filters
 4. useTags hook
 5. useCreateBookmark, useUpdateBookmark, useDeleteBookmark hooks
+- Crear test para validar correcta funcionalidad
 
 Estructura:
 - BookmarkFilters con filters y onFilterChange
@@ -547,6 +576,7 @@ Interacciones:
 - Click en "Delete" → confirmar y eliminar
 - Submit form → crear o actualizar según modo
 - Scroll infinito automático
+- Crear test para validar correcta funcionalidad
 
 Manejo de estados:
 - Loading initial
@@ -577,9 +607,11 @@ Estructura:
    - Si loading auth: mostrar spinner fullscreen
    - Si no autenticado en ruta protegida: redirect /login
    - Si autenticado en /login o /register: redirect /
+   - Crear test para validar correcta funcionalidad
 
 Configurar QueryClient con opciones apropiadas:
 - staleTime, cacheTime, retry, etc.
+- Crear test para validar correcta funcionalidad
 
 Documentar la estructura de routing.
 ```
@@ -619,7 +651,7 @@ Añade mejoras de experiencia de usuario:
    - Al eliminar, remover optimistically
    - Revertir si falla
 
-Implementa estas mejoras una por una.
+Implementa estas mejoras una por una con sus test
 ```
 
 ### Comando 20: Responsive y Accesibilidad
@@ -794,26 +826,6 @@ Formato claro y profesional.
 ---
 
 ## ✅ Comandos de Verificación
-
-### Comando 25: Tests básicos
-
-```
-Añade tests básicos al proyecto:
-
-1. Frontend tests (Vitest):
-   - Test de utils/helpers
-   - Test de hooks básicos
-   - Test de componentes simples
-   - Configurar vitest.config.ts
-
-2. Functions tests:
-   - Unit tests de utils
-   - Mock de admin.firestore()
-   - Test de validaciones
-   - Configurar Jest
-
-No implementar tests e2e por ahora, solo unit tests críticos.
-```
 
 ### Comando 26: Checklist final
 

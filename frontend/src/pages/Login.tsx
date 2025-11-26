@@ -1,5 +1,5 @@
-import React from 'react';
 import { LoginForm } from '@components/auth/LoginForm';
+import type { JSX } from 'react';
 
 /**
  * Login Page
@@ -17,7 +17,7 @@ export function Login(): JSX.Element {
       {/* Optional: Logo or branding */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md mb-8">
         <div className="flex justify-center">
-          <div className="bg-primary-500 text-white w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="bg-blue-500 text-white w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg">
             <svg
               className="w-8 h-8"
               fill="none"

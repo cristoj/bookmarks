@@ -1,35 +1,97 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute, PublicRoute } from './components/auth/ProtectedRoute';
+import { queryClient } from './lib/queryClient';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Pages
+import { Home } from './pages/Home';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { NotFound } from './pages/NotFound';
+import type { JSX } from 'react';
 
+/**
+ * Main Application Component
+ *
+ * Sets up the application with routing, authentication, and query client.
+ *
+ * Architecture:
+ * 1. QueryClientProvider - Provides React Query functionality
+ * 2. BrowserRouter - Provides routing functionality
+ * 3. AuthProvider - Provides authentication state and methods
+ * 4. Routes - Defines application routes
+ *
+ * Route Structure:
+ * - "/" - Protected home page (requires authentication)
+ * - "/login" - Public login page (redirects if authenticated)
+ * - "/register" - Public register page (redirects if authenticated)
+ * - "/forgot-password" - Public password reset page
+ * - "*" - 404 Not Found page
+ *
+ * @example
+ * ```tsx
+ * // In main.tsx
+ * import { App } from './App';
+ *
+ * ReactDOM.createRoot(document.getElementById('root')!).render(
+ *   <React.StrictMode>
+ *     <App />
+ *   </React.StrictMode>
+ * );
+ * ```
+ */
+export function App(): JSX.Element {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            {/* Protected Routes - Require Authentication */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Public Routes - Redirect if Authenticated */}
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <PublicRoute>
+                  <ForgotPassword />
+                </PublicRoute>
+              }
+            />
+
+            {/* 404 Not Found */}
+            <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<Navigate to="/404" replace />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
 }
 
-export default App
+export default App;

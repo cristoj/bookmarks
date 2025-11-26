@@ -1,6 +1,7 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, type FormEvent, type JSX } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@contexts/AuthContext';
+import { useRecaptcha } from '@hooks/useRecaptcha';
 import { Input } from '@components/common/Input';
 import { Button } from '@components/common/Button';
 import type { RegisterFormData } from '@types';
@@ -17,6 +18,7 @@ import type { RegisterFormData } from '@types';
 export function RegisterForm(): JSX.Element {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { verifier, isReady, widgetId, error: recaptchaError } = useRecaptcha('register-recaptcha');
 
   // Form state
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -100,6 +102,35 @@ export function RegisterForm(): JSX.Element {
       setLoading(true);
       setGeneralError('');
 
+      // Ensure reCAPTCHA is available
+      if (!verifier || !isReady) {
+        setGeneralError('Please complete the reCAPTCHA before continuing.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        if (typeof window !== 'undefined' && (window as any).grecaptcha && typeof widgetId !== 'undefined') {
+          const resp = (window as any).grecaptcha.getResponse(widgetId as number);
+          if (!resp) throw new Error('reCAPTCHA not completed');
+        } else if (typeof verifier.verify === 'function') {
+          // @ts-ignore
+          const verifyPromise = verifier.verify();
+          const timeoutMs = 5000;
+          await Promise.race([
+            verifyPromise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('reCAPTCHA verification timeout')), timeoutMs)),
+          ]);
+        } else {
+          throw new Error('reCAPTCHA verification not available');
+        }
+      } catch (recapErr: any) {
+        console.error('reCAPTCHA verify error:', recapErr);
+        setGeneralError('reCAPTCHA verification failed. Please complete the widget.');
+        setLoading(false);
+        return;
+      }
+
       await register(formData.email, formData.password, formData.displayName.trim());
 
       // Success - navigate to home
@@ -127,7 +158,7 @@ export function RegisterForm(): JSX.Element {
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-start">
               <svg
-                className="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5"
+                className="w-5 h-5 text-red-500 mr-2 shrink-0 mt-0.5"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -197,6 +228,14 @@ export function RegisterForm(): JSX.Element {
             autoComplete="new-password"
           />
 
+          {/* reCAPTCHA */}
+          <div id="register-recaptcha" className="flex justify-center mb-4"></div>
+          {recaptchaError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-800">{recaptchaError}</p>
+            </div>
+          )}
+
           {/* Submit button */}
           <Button
             type="submit"
@@ -226,7 +265,7 @@ export function RegisterForm(): JSX.Element {
         <div className="mt-6 text-center">
           <Link
             to="/login"
-            className="font-medium text-primary-500 hover:text-primary-600 transition-colors"
+            className="font-medium text-blue-500 hover:text-blue-600 transition-colors"
           >
             Sign in instead
           </Link>

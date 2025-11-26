@@ -5,8 +5,8 @@ import {
   sendPasswordResetEmail,
   onAuthStateChanged,
   updateProfile,
-  User as FirebaseUser,
-  UserCredential,
+  type User as FirebaseUser,
+  type UserCredential,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@services/firebase';
@@ -63,7 +63,6 @@ export const authService = {
 
       // Create user document in Firestore
       const userData: Omit<User, 'uid'> = {
-        uid: user.uid,
         email: user.email!,
         displayName,
         photoURL: null,

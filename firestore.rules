@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isValidBookmark() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['userId', 'url', 'title', 'tags', 'createdAt', 'updatedAt']) &&
+             data.userId is string &&
+             data.url is string &&
+             data.title is string &&
+             data.tags is list &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Bookmarks collection
+    match /bookmarks/{bookmarkId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() &&
+                       isOwner(request.resource.data.userId) &&
+                       isValidBookmark();
+      allow update: if isAuthenticated() && isOwner(resource.data.userId);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Tags collection - read-only for users, updated by Cloud Functions
+    match /tags/{tagId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only Cloud Functions can write
+    }
+  }
+}

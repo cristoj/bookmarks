@@ -1,0 +1,42 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isUnder10MB() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Screenshots storage - organized by userId
+    match /screenshots/{userId}/{fileName} {
+      // Users can read their own screenshots
+      allow read: if isAuthenticated() && isOwner(userId);
+
+      // Users can upload screenshots (with restrictions)
+      allow write: if isAuthenticated() &&
+                      isOwner(userId) &&
+                      isImage() &&
+                      isUnder10MB();
+
+      // Users can delete their own screenshots
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

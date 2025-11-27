@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type KeyboardEvent, type ChangeEvent } from 'react';
+import { useState, useRef, type KeyboardEvent, type ChangeEvent } from 'react';
 import { X } from 'lucide-react';
 import { useDebounce } from '../../hooks/useDebounce';
 import type { Tag } from '../../services/bookmarks.service';
@@ -133,6 +133,7 @@ export function TagAutocompleteInput({
    */
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
+    setHighlightedIndex(-1); // Reset highlighted index when input changes
   };
 
   /**
@@ -175,13 +176,6 @@ export function TagAutocompleteInput({
   const handleSelectTag = (tagName: string) => {
     addTag(tagName);
   };
-
-  /**
-   * Reset highlighted index when input changes
-   */
-  useEffect(() => {
-    setHighlightedIndex(-1);
-  }, [inputValue]);
 
   const isMaxTagsReached = maxTags ? value.length >= maxTags : false;
 

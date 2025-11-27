@@ -1,6 +1,6 @@
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
-import { logger } from "firebase-functions/v2";
-import { internalCaptureLogic } from "./capture-logic";
+import {onDocumentCreated} from "firebase-functions/v2/firestore";
+import {logger} from "firebase-functions/v2";
+import {internalCaptureLogic} from "./capture-logic";
 
 /**
  * Cloud Function Trigger para iniciar la captura de screenshot.
@@ -28,13 +28,12 @@ export const onBookmarkCreated = onDocumentCreated(
 
     // Ejecutar solo si el estado es 'pending' y tenemos URL
     if (status === "pending" && url && userId) {
-        logger.info(`Iniciando lógica de captura (Trigger) para ${bookmarkId}`);
-        
-        // 🔥 Llama a la lógica de captura con los datos puros
-        await internalCaptureLogic({ bookmarkId, url, userId });
-        
+      logger.info(`Iniciando captura (Trigger) para ${bookmarkId}`);
+
+      // Llama a la lógica de captura con los datos puros
+      await internalCaptureLogic({bookmarkId, url, userId});
     } else {
-        logger.log(`No se inició la captura para ${bookmarkId}. Estado: ${status}`);
+      logger.log(`No se inició captura para ${bookmarkId}. Estado: ${status}`);
     }
   }
 );

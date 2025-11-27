@@ -123,7 +123,7 @@ export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkRespons
     //
     // Por ahora, el cliente debe llamar manualmente a captureScreenshot
 
-    
+
     // Retornar el bookmark creado
     return {
       id: bookmarkRef.id,

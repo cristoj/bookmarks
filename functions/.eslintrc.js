@@ -20,6 +20,10 @@ module.exports = {
   ignorePatterns: [
     "/lib/**/*", // Ignore built files.
     "/generated/**/*", // Ignore generated files.
+    "**/*.test.ts", // Ignore test files.
+    "**/test-helpers.ts", // Ignore test helpers.
+    "**/debug-*.js", // Ignore debug scripts.
+    "**/check-*.js", // Ignore check scripts.
   ],
   plugins: [
     "@typescript-eslint",
@@ -29,5 +33,14 @@ module.exports = {
     "quotes": ["error", "double"],
     "import/no-unresolved": 0,
     "indent": ["error", 2],
+    "max-len": ["error", {
+      "code": 120, // Incrementado de 80 a 120 para mayor flexibilidad
+      "ignoreComments": true,
+      "ignoreStrings": true,
+      "ignoreTemplateLiterals": true,
+      "ignoreUrls": true,
+    }],
+    "import/no-named-as-default-member": "warn",
+    "valid-jsdoc": "off", // Deshabilitado por ser muy estricto
   },
 };

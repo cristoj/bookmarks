@@ -8,8 +8,8 @@ import {HttpsError} from "firebase-functions/v2/https";
  * Expresión regular para validar URLs
  * Permite http, https y protocolos comunes
  */
-const URL_REGEX =
-  /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
+// eslint-disable-next-line max-len
+const URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
 
 /**
  * Valida que una URL sea válida

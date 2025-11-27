@@ -23,7 +23,7 @@ export async function internalCaptureLogic({
   // Inicializar Firestore y Storage
   const db = admin.firestore();
   const bookmarkRef = db.collection("bookmarks").doc(bookmarkId);
-  
+
   // OMITIMOS LA VERIFICACIÓN DE AUTH Y VALIDACIÓN DE PARÁMETROS AQUÍ,
   // YA QUE FUE HECHA POR LA FUNCIÓN LLAMADORA.
 
@@ -91,7 +91,7 @@ export async function internalCaptureLogic({
     await page.setViewport({
       width: 1280,
       height: 720,
-      deviceScaleFactor: 1
+      deviceScaleFactor: 1,
     });
 
     // Configurar User Agent (evita bloqueos)
@@ -104,7 +104,7 @@ export async function internalCaptureLogic({
     // Usamos 'domcontentloaded' en lugar de 'networkidle2' (más rápido y confiable)
     await page.goto(url, {
       waitUntil: "domcontentloaded",
-      timeout: 30000
+      timeout: 30000,
     });
 
     // Esperar 2 segundos para contenido dinámico
@@ -144,7 +144,7 @@ export async function internalCaptureLogic({
       // Formato: http://127.0.0.1:9199/v0/b/{bucket}/o/{encodedPath}?alt=media
       const encodedPath = encodeURIComponent(storagePath);
       screenshotUrl = `http://127.0.0.1:9199/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
-      logger.info("[Logic] Usando URL del emulador local", { screenshotUrl });
+      logger.info("[Logic] Usando URL del emulador local", {screenshotUrl});
     } else {
       // En producción, usar signed URL
       const [signedUrl] = await file.getSignedUrl({
@@ -165,7 +165,6 @@ export async function internalCaptureLogic({
     });
 
     logger.info(`[Logic] Captura exitosa para bookmark ${bookmarkId}`);
-
   } catch (error: unknown) {
     const err = error as { message?: string; stack?: string };
     logger.error(`[Logic] Error al capturar screenshot para ${bookmarkId}`, {

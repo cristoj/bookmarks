@@ -12,7 +12,7 @@ import {Timestamp, FieldValue} from "firebase-admin/firestore";
  * - Elimina caracteres especiales
  *
  * @param tag - Tag a normalizar
- * @returns Tag normalizado para usar como document ID
+ * @return Tag normalizado para usar como document ID
  */
 function normalizeTagForId(tag: string): string {
   return tag

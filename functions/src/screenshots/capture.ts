@@ -222,7 +222,7 @@ export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<Capture
         // Formato: http://127.0.0.1:9199/v0/b/{bucket}/o/{encodedPath}?alt=media
         const encodedPath = encodeURIComponent(storagePath);
         screenshotUrl = `http://127.0.0.1:9199/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
-        logger.info("Usando URL del emulador local", { screenshotUrl });
+        logger.info("Usando URL del emulador local", {screenshotUrl});
       } else {
         // En producción, usar signed URL
         const [signedUrl] = await file.getSignedUrl({

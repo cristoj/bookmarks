@@ -10,7 +10,7 @@ import {onSchedule} from "firebase-functions/v2/scheduler";
 import {logger} from "firebase-functions/v2";
 import {captureScreenshot, type CaptureScreenshotParams} from "./capture";
 import type {CallableRequest} from "firebase-functions/v2/https";
-import { Timestamp } from "firebase-admin/firestore";
+import {Timestamp} from "firebase-admin/firestore";
 
 /**
  * Cloud Function scheduled para reintentar capturas de screenshots fallidos
@@ -35,10 +35,10 @@ import { Timestamp } from "firebase-admin/firestore";
 export const retryFailedScreenshots = onSchedule(
   {
     schedule: "every 24 hours",
-    timeoutSeconds: 540, // 9 minutos (permitir tiempo para 50 capturas)
+    timeoutSeconds: 540, // 9 minutos
     memory: "512MiB",
   },
-  async (_event) => {
+  async () => {
     logger.info("Iniciando reintento de screenshots fallidos");
 
     const db = admin.firestore();
@@ -56,7 +56,8 @@ export const retryFailedScreenshots = onSchedule(
         .limit(50)
         .get();
 
-      logger.info(`Encontrados ${failedBookmarksQuery.docs.length} bookmarks con screenshots fallidos`);
+      const count = failedBookmarksQuery.docs.length;
+      logger.info(`Encontrados ${count} bookmarks con screenshots fallidos`);
 
       if (failedBookmarksQuery.docs.length === 0) {
         logger.info("No hay bookmarks para reintentar");
@@ -77,12 +78,16 @@ export const retryFailedScreenshots = onSchedule(
 
         // Si ya ha alcanzado el límite de reintentos, saltar
         if (retries >= 3) {
-          logger.warn(`Bookmark ${bookmarkId} ha alcanzado el límite de reintentos (${retries})`);
+          logger.warn(
+            `Bookmark ${bookmarkId} alcanzó límite de reintentos (${retries})`
+          );
           skippedCount++;
           continue;
         }
 
-        logger.info(`Reintentando captura para bookmark ${bookmarkId} (intento ${retries + 1}/3)`);
+        logger.info(
+          `Reintentando captura para ${bookmarkId} (${retries + 1}/3)`
+        );
 
         try {
           // Incrementar contador de reintentos antes de intentar
@@ -104,10 +109,10 @@ export const retryFailedScreenshots = onSchedule(
           } as CallableRequest<CaptureScreenshotParams>);
 
           if (result.success) {
-            logger.info(`Screenshot capturado exitosamente para bookmark ${bookmarkId}`);
+            logger.info(`Screenshot capturado para ${bookmarkId}`);
             successCount++;
           } else {
-            logger.warn(`Captura falló para bookmark ${bookmarkId}: ${result.error}`);
+            logger.warn(`Captura falló para ${bookmarkId}: ${result.error}`);
             failCount++;
           }
         } catch (error: unknown) {

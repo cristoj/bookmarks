@@ -31,16 +31,6 @@
           "order": "DESCENDING"
         }
       ]
-    },
-    {
-      "collectionGroup": "tags",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "count",
-          "order": "DESCENDING"
-        }
-      ]
     }
   ],
   "fieldOverrides": []

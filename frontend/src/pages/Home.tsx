@@ -87,7 +87,7 @@ export function Home(): JSX.Element {
     limit: 12,
   });
 
-  const { data: tags = [], isLoading: _isLoadingTags } = useTags();
+  const { data: tags = [] } = useTags();
 
   // Mutations
   const createBookmarkMutation = useCreateBookmark();

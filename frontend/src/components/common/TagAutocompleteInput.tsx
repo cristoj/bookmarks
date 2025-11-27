@@ -83,7 +83,6 @@ export function TagAutocompleteInput({
   debounceMs = 500,
 }: TagAutocompleteInputProps) {
   const [inputValue, setInputValue] = useState('');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -101,11 +100,8 @@ export function TagAutocompleteInput({
       )
     : [];
 
-  // Show dropdown when there are filtered results and input is focused
-  useEffect(() => {
-    setIsDropdownOpen(filteredTags.length > 0 && inputValue.length >= minSearchChars);
-    setHighlightedIndex(-1);
-  }, [filteredTags.length, inputValue.length, minSearchChars]);
+  // Calculate if dropdown should be open
+  const shouldShowDropdown = filteredTags.length > 0 && inputValue.length >= minSearchChars;
 
   /**
    * Add a tag to the selected list
@@ -121,7 +117,7 @@ export function TagAutocompleteInput({
     // Add tag and clear input
     onChange([...value, trimmedTag]);
     setInputValue('');
-    setIsDropdownOpen(false);
+    setHighlightedIndex(-1);
     inputRef.current?.focus();
   };
 
@@ -157,15 +153,19 @@ export function TagAutocompleteInput({
       removeTag(value[value.length - 1]);
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setHighlightedIndex((prev) =>
-        prev < filteredTags.length - 1 ? prev + 1 : prev
-      );
+      if (shouldShowDropdown) {
+        setHighlightedIndex((prev) =>
+          prev < filteredTags.length - 1 ? prev + 1 : prev
+        );
+      }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      if (shouldShowDropdown) {
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      }
     } else if (e.key === 'Escape') {
-      setIsDropdownOpen(false);
       setHighlightedIndex(-1);
+      inputRef.current?.blur();
     }
   };
 
@@ -177,25 +177,11 @@ export function TagAutocompleteInput({
   };
 
   /**
-   * Close dropdown when clicking outside
+   * Reset highlighted index when input changes
    */
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        inputRef.current &&
-        !inputRef.current.contains(event.target as Node)
-      ) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+    setHighlightedIndex(-1);
+  }, [inputValue]);
 
   const isMaxTagsReached = maxTags ? value.length >= maxTags : false;
 
@@ -243,11 +229,6 @@ export function TagAutocompleteInput({
               value={inputValue}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              onFocus={() => {
-                if (inputValue.length >= minSearchChars) {
-                  setIsDropdownOpen(filteredTags.length > 0);
-                }
-              }}
               placeholder={value.length === 0 ? placeholder : ''}
               disabled={disabled}
               className="flex-1 min-w-0 px-2 py-1 border-0 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -256,7 +237,7 @@ export function TagAutocompleteInput({
         </div>
 
         {/* Autocomplete Dropdown */}
-        {isDropdownOpen && !disabled && (
+        {shouldShowDropdown && !disabled && (
           <div
             ref={dropdownRef}
             className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"

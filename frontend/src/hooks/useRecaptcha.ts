@@ -18,7 +18,7 @@ export function useRecaptcha(containerId: string = 'recaptcha-container') {
     // Helper: wait for grecaptcha to be available on window
     const waitForGrecaptcha = async (timeout = 3000, interval = 100) => {
       const start = Date.now();
-      // eslint-disable-next-line no-constant-condition
+       
       while (true) {
         // @ts-ignore
         if (typeof window !== 'undefined' && (window as any).grecaptcha && typeof (window as any).grecaptcha.render === 'function') {
@@ -27,7 +27,7 @@ export function useRecaptcha(containerId: string = 'recaptcha-container') {
         if (Date.now() - start > timeout) {
           return false;
         }
-        // eslint-disable-next-line no-await-in-loop
+         
         await new Promise((res) => setTimeout(res, interval));
       }
     };

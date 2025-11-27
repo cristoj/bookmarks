@@ -101,6 +101,7 @@ export function BookmarkFilters({
     if (debouncedSearch !== filters.search) {
       onFilterChange({ ...filters, search: debouncedSearch });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch]);
 
   /**

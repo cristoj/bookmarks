@@ -45,7 +45,7 @@ export interface DeleteBookmarkResponse {
 export const deleteBookmark = onCall<DeleteBookmarkParams, Promise<DeleteBookmarkResponse>>(
   {
     timeoutSeconds: 60,
-    memory: "256MB",
+    memory: "256MiB",
   },
   async (request) => {
     // Verificar autenticación

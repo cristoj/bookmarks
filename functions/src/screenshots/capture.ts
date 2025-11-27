@@ -59,7 +59,7 @@ export interface CaptureScreenshotResponse {
 export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<CaptureScreenshotResponse>>(
   {
     timeoutSeconds: 120,
-    memory: "1GB",
+    memory: "1GiB",
   },
   async (request) => {
     // Verificar autenticación

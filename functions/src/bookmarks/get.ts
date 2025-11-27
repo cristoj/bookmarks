@@ -68,7 +68,7 @@ export interface GetBookmarksResponse {
 export const getBookmarks = onCall<GetBookmarksParams, Promise<GetBookmarksResponse>>(
   {
     timeoutSeconds: 60,
-    memory: "256MB",
+    memory: "256MiB",
   },
   async (request) => {
     // Verificar autenticación

@@ -52,7 +52,7 @@ export interface UpdateBookmarkResponse {
 export const updateBookmark = onCall<UpdateBookmarkParams, Promise<UpdateBookmarkResponse>>(
   {
     timeoutSeconds: 60,
-    memory: "256MB",
+    memory: "256MiB",
   },
   async (request) => {
     // Verificar autenticación

@@ -34,19 +34,27 @@
 4. Ubicación: Misma que Firestore
 5. Clic en "Listo"
 
+### 5. Configurar Hosting
+
+1. En el menú lateral → Hosting
+2. Clic en "Comenzar"
+3. Seguir los pasos del asistente (ya tendrás Firebase CLI instalado)
+4. El proyecto ya está configurado con `firebase.json`
+
 ---
 
 ## 📄 Archivos de Configuración
 
 ### firebase.json
 
-Crear en la raíz del proyecto:
+Ya existe en la raíz del proyecto con esta configuración:
 
 ```json
 {
   "functions": {
     "source": "functions",
     "predeploy": [
+      "npm --prefix \"$RESOURCE_DIR\" run lint",
       "npm --prefix \"$RESOURCE_DIR\" run build"
     ],
     "runtime": "nodejs18"
@@ -57,6 +65,44 @@ Crear en la raíz del proyecto:
   },
   "storage": {
     "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": "frontend/dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000"
+          }
+        ]
+      }
+    ],
+    "predeploy": [
+      "npm --prefix frontend install",
+      "npm --prefix frontend run build"
+    ]
   },
   "emulators": {
     "auth": {
@@ -70,6 +116,9 @@ Crear en la raíz del proyecto:
     },
     "storage": {
       "port": 9199
+    },
+    "hosting": {
+      "port": 5000
     },
     "ui": {
       "enabled": true,
@@ -410,8 +459,11 @@ firebase emulators:start --inspect-functions
 ### Deploy
 
 ```bash
-# Deploy todo
+# Deploy todo (hosting + functions + rules)
 firebase deploy
+
+# Solo hosting (frontend)
+firebase deploy --only hosting
 
 # Solo functions
 firebase deploy --only functions
@@ -421,6 +473,9 @@ firebase deploy --only firestore:rules,storage:rules
 
 # Función específica
 firebase deploy --only functions:createBookmark
+
+# Preview channel (como Vercel previews)
+firebase hosting:channel:deploy preview-branch-name
 ```
 
 ### Logs
@@ -630,18 +685,21 @@ https://console.firebase.google.com → Firestore Database
 - [ ] Habilitar Authentication (Email/Password)
 - [ ] Crear Firestore Database
 - [ ] Habilitar Storage
+- [ ] Habilitar Hosting
 - [ ] Copiar configuración del SDK
 - [ ] Instalar Firebase CLI: `npm i -g firebase-tools`
 - [ ] Login en Firebase: `firebase login`
-- [ ] Inicializar proyecto: `firebase init`
-- [ ] Crear archivos de configuración (firebase.json, rules, etc.)
-- [ ] Configurar variables de entorno en frontend
-- [ ] Probar con emulators locales
-- [ ] Hacer primer deploy de prueba
-- [ ] Configurar GitHub Actions
-- [ ] Obtener tokens para CI/CD
-- [ ] Configurar alertas de uso
+- [ ] Verificar `firebase.json` está configurado correctamente
+- [ ] Crear archivos de rules (firestore.rules, storage.rules)
+- [ ] Configurar variables de entorno en frontend (.env)
+- [ ] Probar con emulators locales: `firebase emulators:start`
+- [ ] Build del frontend: `cd frontend && npm run build`
+- [ ] Hacer primer deploy: `firebase deploy`
+- [ ] Configurar dominio personalizado (opcional)
+- [ ] Configurar GitHub Actions para CI/CD
+- [ ] Obtener token para CI/CD: `firebase login:ci`
+- [ ] Configurar alertas de uso en Firebase Console
 
 ---
 
-**¡Listo! Tu proyecto Firebase está configurado correctamente.**
+**¡Listo! Tu proyecto está completamente alojado en Firebase (Hosting + Functions + Database + Storage).**

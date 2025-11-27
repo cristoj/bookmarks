@@ -48,7 +48,7 @@ export interface CreateBookmarkResponse {
 export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkResponse>>(
   {
     timeoutSeconds: 60,
-    memory: "256MB",
+    memory: "256MiB",
   },
   async (request) => {
     // Verificar autenticación

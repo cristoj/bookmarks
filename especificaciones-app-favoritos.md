@@ -1068,39 +1068,38 @@ async function captureWithFallback(url: string) {
 
 ---
 
-## 🚀 Opción de Alojamiento: Firebase + Vercel
+## 🚀 Alojamiento: Firebase (Todo en Uno)
 
-### Arquitectura Elegida: Monorepo
+### Arquitectura: Firebase Completo
 
 **Repositorio único:** `git@github.com:cristoj/bookmarks.git`
 
-**Frontend (Vercel)**
+**Firebase proporciona TODO:**
+
+**Frontend (Firebase Hosting)**
 - ✅ Gratis para proyectos personales
-- ✅ Deploy automático desde GitHub
-- ✅ SSL incluido
-- ✅ CDN global
+- ✅ SSL automático incluido
+- ✅ CDN global de Google
 - ✅ Custom domain gratuito
-- ✅ Edge Functions disponibles
-- ✅ Optimización automática de imágenes
-- ✅ **Soporta monorepos** - puede apuntar solo a `/frontend`
+- ✅ Preview channels (como Vercel previews)
+- ✅ Deploy desde la raíz del proyecto
+- ✅ Integración perfecta con Functions
 
 **Backend + DB (Firebase)**
 - ✅ Firestore como base de datos (1GB gratis, 50K reads/day, 20K writes/day)
 - ✅ Authentication integrado (10K auth/mes gratis)
 - ✅ Cloud Functions para backend (2M invocations/mes gratis)
 - ✅ Storage para screenshots (5GB gratis, 1GB download/day)
-- ✅ Hosting para backup/testing
-- ✅ **Soporta monorepos** - Firebase CLI despliega desde root
+- ✅ Todo administrado desde Firebase Console
 
 ```bash
-# Estructura del proyecto (Monorepo)
+# Estructura del proyecto
 bookmarks/                         # Repo único
 ├── frontend/                      # Directorio frontend
 │   ├── src/
 │   ├── public/
 │   ├── package.json              # Dependencias frontend
 │   ├── vite.config.ts
-│   ├── vercel.json               # Config Vercel (apunta a este dir)
 │   └── .env.example
 │
 ├── functions/                     # Cloud Functions
@@ -1113,9 +1112,9 @@ bookmarks/                         # Repo único
 │
 ├── .github/
 │   └── workflows/
-│       └── deploy-all.yml        # Deploy ambos desde un workflow
+│       └── deploy-firebase.yml   # Deploy automático con GitHub Actions
 │
-├── firebase.json                 # Config Firebase (root del repo)
+├── firebase.json                 # Config Firebase (hosting + functions + rules)
 ├── firestore.rules
 ├── storage.rules
 ├── .firebaserc
@@ -1123,12 +1122,14 @@ bookmarks/                         # Repo único
 └── README.md
 ```
 
-**¿Por qué monorepo?**
-- ✅ Un solo `git clone` y `git push`
+**Ventajas de Firebase Hosting:**
+- ✅ Un solo proveedor - más simple de administrar
+- ✅ Un solo `firebase deploy` para todo
 - ✅ Tipos compartidos entre frontend/functions
 - ✅ Versionado sincronizado
-- ✅ Vercel y Firebase soportan esta estructura
-- ✅ GitHub Actions puede manejar ambos
+- ✅ Integración perfecta entre hosting y functions
+- ✅ Preview channels incluidos (como Vercel)
+- ✅ Sin necesidad de configurar CORS
 
 **Costos**: $0/mes para uso personal (dentro de los límites gratuitos)
 
@@ -1140,103 +1141,23 @@ bookmarks/                         # Repo único
 
 ---
 
-## ⚙️ Configuración de Deploy en Monorepo
+## ⚙️ Configuración de Deploy con Firebase
 
-### 🔷 Vercel - Configuración para Subdirectorio
+### 🔥 Firebase - Todo desde la Raíz
 
-**Paso 1: Crear `frontend/vercel.json`**
+Firebase maneja todo desde un solo comando. El archivo `firebase.json` ya está configurado.
 
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "vite",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}
-```
-
-**Paso 2: Importar en Vercel Dashboard**
-
-1. Ve a https://vercel.com/new
-2. Import Git Repository: `cristoj/bookmarks`
-3. Configure Project:
-   - **Framework Preset**: Vite
-   - **Root Directory**: `frontend` ⚠️ **CRUCIAL - Esto hace que Vercel solo use este directorio**
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-   - **Install Command**: `npm install`
-
-**Paso 3: Añadir Variables de Entorno**
-
-En Vercel Dashboard → Settings → Environment Variables:
-```
-VITE_FIREBASE_API_KEY=xxx
-VITE_FIREBASE_AUTH_DOMAIN=xxx
-VITE_FIREBASE_PROJECT_ID=xxx
-VITE_FIREBASE_STORAGE_BUCKET=xxx
-VITE_FIREBASE_MESSAGING_SENDER_ID=xxx
-VITE_FIREBASE_APP_ID=xxx
-VITE_FIREBASE_MEASUREMENT_ID=xxx
-```
-
-**Alternativa con Vercel CLI:**
+**Deploy completo (hosting + functions + rules):**
 
 ```bash
-# Instalar Vercel CLI
-npm i -g vercel
-
-# Desde la raíz del proyecto
-cd frontend
-vercel
-
-# Responder prompts:
-# ✓ Set up and deploy? Yes
-# ✓ Which scope? (tu cuenta)
-# ✓ Link to existing project? No  
-# ✓ Project name? bookmarks
-# ✓ In which directory is your code? ./
-# ✓ Override settings? No
-
-# Para producción
-vercel --prod
-```
-
----
-
-### 🔥 Firebase - Configuración desde Root
-
-Firebase funciona desde la raíz del proyecto sin configuración especial.
-
-**Crear `firebase.json` en root:**
-
-```json
-{
-  "functions": {
-    "source": "functions",
-    "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run build"
-    ],
-    "runtime": "nodejs18"
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "storage": {
-    "rules": "storage.rules"
-  }
-}
-```
-
-**Deploy desde root:**
-
-```bash
-# Deploy todo
 firebase deploy
+```
+
+**Deploy selectivo:**
+
+```bash
+# Solo frontend
+firebase deploy --only hosting
 
 # Solo functions
 firebase deploy --only functions
@@ -1248,47 +1169,65 @@ firebase deploy --only firestore:rules,storage:rules
 firebase deploy --only functions:createBookmark
 ```
 
+**Preview channels (como Vercel previews):**
+
+```bash
+# Crear preview de una rama
+firebase hosting:channel:deploy feature-branch
+
+# Ver todos los preview channels
+firebase hosting:channel:list
+
+# Eliminar un preview channel
+firebase hosting:channel:delete feature-branch
+```
+
 ---
 
-### 🤖 GitHub Actions - Deploy Ambos
+### 🤖 GitHub Actions - Deploy Automático
 
-El workflow maneja ambos subdirectorios automáticamente:
+El workflow despliega todo con un solo job:
 
 ```yaml
-# .github/workflows/deploy-all.yml
-jobs:
-  deploy-frontend:
-    steps:
-      - name: Install and Build Frontend
-        working-directory: ./frontend    # ← Trabaja en subdirectorio
-        run: |
-          npm ci
-          npm run build
-      
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          working-directory: ./frontend  # ← Apunta al subdirectorio
-          # ...
+# .github/workflows/deploy-firebase.yml
+name: Deploy to Firebase
 
-  deploy-backend:
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
     steps:
-      - name: Install and Build Functions  
-        working-directory: ./functions   # ← Trabaja en subdirectorio
-        run: |
-          npm ci
-          npm run build
-      
+      - uses: actions/checkout@v3
+
       - name: Deploy to Firebase
-        working-directory: ./             # ← Deploy desde root
-        run: firebase deploy --only functions
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+```
+
+**Configuración de secrets:**
+
+```bash
+# 1. Obtener token de Firebase
+firebase login:ci
+
+# 2. Agregar como secret en GitHub
+# GitHub → Settings → Secrets → FIREBASE_TOKEN
 ```
 
 **Cómo funciona:**
-1. GitHub Actions clona todo el repo
-2. Para frontend: entra a `/frontend` y ejecuta comandos
-3. Para functions: entra a `/functions` para build, luego deploy desde root
-4. Ambos deploys son independientes
+1. GitHub Actions clona el repo
+2. Firebase CLI ejecuta los predeploy hooks automáticamente:
+   - Instala dependencias del frontend
+   - Build del frontend
+   - Instala dependencias de functions
+   - Build de functions
+3. Despliega todo junto
 
 ---
 
@@ -1366,11 +1305,11 @@ y diseña migraciones seguras"
 
 ---
 
-## 📁 Estructura de Carpetas (Firebase + Vercel)
+## 📁 Estructura de Carpetas (Firebase)
 
 ```
 bookmarks/                              # Repositorio git@github.com:cristoj/bookmarks.git
-├── frontend/                           # App React (Deploy en Vercel)
+├── frontend/                           # App React (Deploy en Firebase Hosting)
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── common/
@@ -1417,10 +1356,9 @@ bookmarks/                              # Repositorio git@github.com:cristoj/boo
 │   ├── index.html
 │   ├── package.json
 │   ├── tsconfig.json
-│   ├── vite.config.ts
-│   └── vercel.json                     # Configuración Vercel
+│   └── vite.config.ts
 │
-├── functions/                          # Cloud Functions (Deploy en Firebase)
+├── functions/                          # Cloud Functions
 │   ├── src/
 │   │   ├── index.ts                    # Punto de entrada
 │   │   ├── bookmarks/
@@ -1441,10 +1379,9 @@ bookmarks/                              # Repositorio git@github.com:cristoj/boo
 │
 ├── .github/
 │   └── workflows/
-│       ├── deploy-vercel.yml           # CI/CD para Vercel
 │       └── deploy-firebase.yml         # CI/CD para Firebase
 │
-├── firebase.json                       # Configuración Firebase
+├── firebase.json                       # Configuración Firebase (hosting + functions + rules)
 ├── firestore.rules                     # Reglas Firestore
 ├── firestore.indexes.json              # Índices Firestore
 ├── storage.rules                       # Reglas Storage
@@ -1458,10 +1395,10 @@ bookmarks/                              # Repositorio git@github.com:cristoj/boo
 
 ## 🔧 Variables de Entorno
 
-### Frontend (.env - Vercel)
+### Frontend (.env)
 
 ```bash
-# .env.example
+# frontend/.env.example
 
 # Firebase Config (Frontend)
 VITE_FIREBASE_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -1474,27 +1411,18 @@ VITE_FIREBASE_MEASUREMENT_ID=G-XXXXXXXXXX
 
 # App Config
 VITE_APP_NAME=Bookmarks App
-VITE_APP_URL=https://your-app.vercel.app
+VITE_APP_URL=https://your-project.web.app
 ```
 
-### Cloud Functions (.env - Firebase)
+**Nota:** Estas variables NO son secretas. Firebase espera que estén en el código cliente. La seguridad viene de Firestore/Storage rules, no de ocultar estas claves.
+
+### Cloud Functions
 
 ```bash
 # Las Cloud Functions usan Firebase Admin SDK automáticamente
 # No necesitan variables de entorno para acceder a Firebase
 
 # Opcional: Si usas servicios externos
-APIFLASH_KEY=your-apiflash-key-if-needed
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-```
-
-### Configurar en Firebase Console
-
-```bash
-# Para variables secretas en Cloud Functions
 firebase functions:config:set smtp.host="smtp.gmail.com"
 firebase functions:config:set smtp.user="your-email@gmail.com"
 firebase functions:config:set smtp.pass="your-password"
@@ -1502,13 +1430,6 @@ firebase functions:config:set smtp.pass="your-password"
 # Acceder en el código
 const smtpConfig = functions.config().smtp;
 ```
-
-### Configurar en Vercel Dashboard
-
-1. Ve a tu proyecto en Vercel
-2. Settings → Environment Variables
-3. Añade todas las variables `VITE_*`
-4. Separa por entornos: Production, Preview, Development
 
 ---
 
@@ -1590,21 +1511,18 @@ const smtpConfig = functions.config().smtp;
 - [ ] Tema claro (oscuro opcional)
 
 ### Fase 10: Deploy Setup
-- [ ] Crear cuenta en Vercel
-- [ ] Conectar repositorio GitHub con Vercel
-- [ ] Configurar variables de entorno en Vercel
-- [ ] Primer deploy manual de frontend
-- [ ] Obtener tokens para GitHub Actions
-- [ ] Crear workflows de GitHub Actions
-- [ ] Configurar secrets en GitHub
+- [ ] Habilitar Firebase Hosting en Firebase Console
+- [ ] Configurar variables de entorno en frontend/.env
+- [ ] Primer deploy manual: `firebase deploy`
+- [ ] Obtener token para GitHub Actions: `firebase login:ci`
+- [ ] Crear workflow de GitHub Actions
+- [ ] Configurar secret FIREBASE_TOKEN en GitHub
 
 ### Fase 11: GitHub Actions
-- [ ] Crear .github/workflows/deploy-all.yml
-- [ ] Configurar VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
-- [ ] Configurar FIREBASE_TOKEN
-- [ ] Configurar variables Firebase (VITE_*)
-- [ ] Probar deploy con tag de prueba
-- [ ] Verificar que funcionen ambos deploys
+- [ ] Crear .github/workflows/deploy-firebase.yml
+- [ ] Configurar secret FIREBASE_TOKEN en GitHub
+- [ ] Probar deploy automático con push a main
+- [ ] Verificar que funcione hosting + functions
 
 ### Fase 12: Testing Final
 - [ ] Probar registro de usuario
@@ -2056,32 +1974,28 @@ git@github.com:cristoj/bookmarks.git
 ```
 
 ### Stack Final
-- **Frontend**: React + TypeScript + Vite + Tailwind CSS → Vercel
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS → Firebase Hosting
 - **Backend**: Firebase Cloud Functions + TypeScript
 - **Database**: Firestore (NoSQL)
 - **Auth**: Firebase Authentication
 - **Storage**: Firebase Storage (screenshots)
 - **Screenshots**: Puppeteer en Cloud Functions
-- **CI/CD**: GitHub Actions (deploy con tags v*.*.*)
+- **CI/CD**: GitHub Actions (deploy automático)
 
 ### Arquitectura
 ```
-┌─────────────────┐
-│   React App     │
-│   (Vercel)      │
-└────────┬────────┘
-         │
-         │ Firebase SDK
-         │
-┌────────▼────────────────────────────┐
-│         Firebase                    │
+┌─────────────────────────────────────┐
+│         Firebase (Todo en Uno)      │
 │  ┌──────────┐  ┌──────────────┐   │
-│  │   Auth   │  │  Firestore   │   │
-│  └──────────┘  └──────────────┘   │
-│  ┌──────────┐  ┌──────────────┐   │
-│  │ Storage  │  │   Functions  │   │
-│  │          │  │  (Puppeteer) │   │
-│  └──────────┘  └──────────────┘   │
+│  │ Hosting  │  │     Auth     │   │
+│  │ (React)  │  └──────────────┘   │
+│  └──────────┘  ┌──────────────┐   │
+│  ┌──────────┐  │  Firestore   │   │
+│  │ Storage  │  └──────────────┘   │
+│  └──────────┘  ┌──────────────┐   │
+│                 │   Functions  │   │
+│                 │  (Puppeteer) │   │
+│                 └──────────────┘   │
 └─────────────────────────────────────┘
 ```
 
@@ -2091,22 +2005,20 @@ git@github.com:cristoj/bookmarks.git
    ```bash
    # Frontend
    cd frontend && npm run dev
-   
-   # Functions (emulator)
-   cd functions && npm run serve
+
+   # Emuladores (todo junto)
+   firebase emulators:start
    ```
 
-2. **Crear nueva versión**
+2. **Deploy manual**
    ```bash
-   git tag -a v1.0.0 -m "Release v1.0.0"
-   git push origin v1.0.0
+   firebase deploy
    ```
 
-3. **Deploy automático**
-   - GitHub Actions detecta el tag
-   - Despliega frontend en Vercel
-   - Despliega functions en Firebase
-   - Crea release en GitHub
+3. **Deploy automático (GitHub Actions)**
+   - Push a main
+   - GitHub Actions ejecuta firebase deploy
+   - Despliega hosting + functions + rules
 
 ### Tiempo Estimado de Desarrollo
 - Setup inicial + Firebase: 3-4 horas
@@ -2121,7 +2033,7 @@ git@github.com:cristoj/bookmarks.git
 ### Costo Mensual Estimado
 
 **Plan Gratuito (Suficiente para uso personal):**
-- Vercel: $0 (ilimitado para proyectos personales)
+- Firebase Hosting: $0 (10GB transfer/mes)
 - Firebase Auth: $0 (10K auth/mes)
 - Firestore: $0 (1GB, 50K reads/day, 20K writes/day)
 - Cloud Functions: $0 (2M invocations/mes, 400K GB-s)
@@ -2130,7 +2042,7 @@ git@github.com:cristoj/bookmarks.git
 
 **Si excedes límites (poco probable para uso personal):**
 - Firebase Blaze (Pay-as-you-go): ~$5-10/mes
-- Vercel sigue siendo gratis
+- Todo sigue bajo un solo proveedor
 
 ---
 
@@ -2149,14 +2061,10 @@ git@github.com:cristoj/bookmarks.git
    - Habilitar Authentication (Email/Password)
    - Crear base de datos Firestore
    - Habilitar Storage
+   - Habilitar Hosting
    - Copiar configuración del SDK
 
-3. **Crear cuenta en Vercel**
-   - Ir a https://vercel.com
-   - Conectar con GitHub
-   - Importar repositorio cuando esté listo
-
-4. **Abrir Claude Code** y comenzar con:
+3. **Abrir Claude Code** y comenzar con:
    ```bash
    "Crea un proyecto full-stack para un agregador de bookmarks 
    según las especificaciones. Estructura:
@@ -2171,20 +2079,19 @@ git@github.com:cristoj/bookmarks.git
    - Setup básico de Cloud Functions"
    ```
 
-5. **Desarrollo iterativo** feature por feature siguiendo el checklist
+4. **Desarrollo iterativo** feature por feature siguiendo el checklist
 
-6. **Configurar GitHub Actions**
-   - Obtener tokens de Vercel y Firebase
-   - Configurar secrets en GitHub
-   - Crear workflows según especificaciones
-
-7. **Primer deploy**
+5. **Primer deploy manual**
    ```bash
-   git tag -a v0.1.0 -m "Initial deploy"
-   git push origin v0.1.0
+   firebase deploy
    ```
 
-8. **Iterar y mejorar** según uso
+6. **Configurar GitHub Actions**
+   - Obtener token: `firebase login:ci`
+   - Configurar secret FIREBASE_TOKEN en GitHub
+   - Crear workflow de deploy automático
+
+7. **Iterar y mejorar** según uso
 
 ---
 

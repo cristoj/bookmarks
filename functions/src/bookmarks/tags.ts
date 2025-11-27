@@ -49,7 +49,7 @@ export interface GetTagsResponse {
 export const getTags = onCall<void, Promise<GetTagsResponse>>(
   {
     timeoutSeconds: 60,
-    memory: "256MB",
+    memory: "256MiB",
   },
   async (request) => {
     // Verificar autenticación

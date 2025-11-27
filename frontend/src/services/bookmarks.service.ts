@@ -302,6 +302,50 @@ export async function getTags(): Promise<Tag[]> {
 }
 
 /**
+ * Interface for page metadata
+ */
+export interface PageMetadata {
+  title: string;
+  description: string;
+  success: boolean;
+}
+
+/**
+ * Fetches page metadata (title and description) from a URL
+ *
+ * Calls the getPageMetadata Cloud Function to extract
+ * meta tags from the provided URL for autocomplete functionality.
+ *
+ * @param url - The URL to fetch metadata from
+ * @returns Object with title and description
+ * @throws BookmarkServiceError if the operation fails
+ *
+ * @example
+ * ```typescript
+ * const metadata = await bookmarksService.getPageMetadata('https://example.com');
+ * console.log(metadata.title); // "Example Domain"
+ * console.log(metadata.description); // "Example description"
+ * ```
+ */
+export async function getPageMetadata(url: string): Promise<PageMetadata> {
+  try {
+    const getMetadata = httpsCallable<{ url: string }, PageMetadata>(
+      functions,
+      'getPageMetadata'
+    );
+
+    const result: HttpsCallableResult<PageMetadata> = await getMetadata({ url });
+    return result.data;
+  } catch (error: any) {
+    throw new BookmarkServiceError(
+      error.message || 'Failed to fetch page metadata',
+      error.code,
+      error.details
+    );
+  }
+}
+
+/**
  * Default export with all service functions
  */
 export default {
@@ -310,4 +354,5 @@ export default {
   update,
   delete: deleteBookmark,
   getTags,
+  getPageMetadata,
 };

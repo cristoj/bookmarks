@@ -22,6 +22,7 @@ export {getBookmarks} from "./bookmarks/get";
 export {updateBookmark} from "./bookmarks/update";
 export {deleteBookmark} from "./bookmarks/delete";
 export {getTags} from "./bookmarks/tags";
+export {getPageMetadata} from "./bookmarks/metadata";
 
 // Exportar funciones de screenshots
 export {captureScreenshot} from "./screenshots/capture";

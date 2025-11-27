@@ -34,7 +34,7 @@ export const retryFailedScreenshots = onSchedule(
   {
     schedule: "every 24 hours",
     timeoutSeconds: 540, // 9 minutos (permitir tiempo para 50 capturas)
-    memory: "512MB",
+    memory: "512MiB",
   },
   async (event) => {
     logger.info("Iniciando reintento de screenshots fallidos");

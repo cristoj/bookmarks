@@ -3,12 +3,9 @@
  */
 
 import * as admin from "firebase-admin";
-import {expect} from "chai";
-import * as functionsTest from "firebase-functions-test";
-import {getTags} from "./tags";
-
-// Inicializar firebase-functions-test
-const test = functionsTest();
+import { expect } from "chai";
+import { getTags } from "./tags";
+import { test } from "../test-helpers";
 
 describe("getTags", () => {
   let db: admin.firestore.Firestore;
@@ -16,10 +13,7 @@ describe("getTags", () => {
   const createdTagIds: string[] = [];
 
   before(async () => {
-    // Inicializar Firebase Admin si no está inicializado
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
+    // Firebase Admin ya está inicializado en test-helpers
     db = admin.firestore();
 
     // Crear tags de prueba
@@ -68,11 +62,12 @@ describe("getTags", () => {
 
   it("debe retornar tags ordenados por count descendente", async () => {
     const wrapped = test.wrap(getTags);
-    const result = await wrapped(undefined, {
+    const result = await wrapped({
+      data: undefined,
       auth: {
         uid: testUserId,
       },
-    });
+    } as any);
 
     expect(result).to.have.property("tags");
     expect(result).to.have.property("total");
@@ -95,11 +90,12 @@ describe("getTags", () => {
 
   it("no debe retornar tags con count 0 o menor", async () => {
     const wrapped = test.wrap(getTags);
-    const result = await wrapped(undefined, {
+    const result = await wrapped({
+      data: undefined,
       auth: {
         uid: testUserId,
       },
-    });
+    } as any);
 
     // Verificar que no hay tags con count <= 0
     result.tags.forEach((tag) => {
@@ -113,11 +109,12 @@ describe("getTags", () => {
 
   it("debe incluir información completa de cada tag", async () => {
     const wrapped = test.wrap(getTags);
-    const result = await wrapped(undefined, {
+    const result = await wrapped({
+      data: undefined,
       auth: {
         uid: testUserId,
       },
-    });
+    } as any);
 
     expect(result.tags.length).to.be.greaterThan(0);
 
@@ -134,11 +131,12 @@ describe("getTags", () => {
 
   it("debe respetar el límite de 100 tags", async () => {
     const wrapped = test.wrap(getTags);
-    const result = await wrapped(undefined, {
+    const result = await wrapped({
+      ðata: undefined,
       auth: {
         uid: testUserId,
       },
-    });
+    } as any);
 
     expect(result.tags.length).to.be.at.most(100);
   });
@@ -147,7 +145,7 @@ describe("getTags", () => {
     const wrapped = test.wrap(getTags);
 
     try {
-      await wrapped(undefined, {});
+      await wrapped({ data: undefined } as any);
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
       expect(error.code).to.equal("unauthenticated");
@@ -164,11 +162,11 @@ describe("getTags", () => {
     await batch.commit();
 
     const wrapped = test.wrap(getTags);
-    const result = await wrapped(undefined, {
-      auth: {
+    const result = await wrapped({
+      data: undefined, uth: {
         uid: testUserId,
       },
-    });
+    } as any);
 
     expect(result.tags).to.be.an("array");
     expect(result.tags.length).to.equal(0);

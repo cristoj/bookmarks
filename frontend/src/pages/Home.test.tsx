@@ -1,7 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Home } from './Home';
 import * as useBookmarksHook from '../hooks/useBookmarks';
@@ -10,6 +11,7 @@ import * as useCreateBookmarkHook from '../hooks/useCreateBookmark';
 import * as useUpdateBookmarkHook from '../hooks/useUpdateBookmark';
 import * as useDeleteBookmarkHook from '../hooks/useDeleteBookmark';
 import type { Bookmark, Tag } from '../services/bookmarks.service';
+import { renderWithProviders } from '../test/test-utils';
 
 // Mock data
 const mockBookmarks: Bookmark[] = [
@@ -47,28 +49,9 @@ const mockTags: Tag[] = [
   { name: 'typescript', count: 8, updatedAt: '2024-01-03' },
 ];
 
-// Helper function to create a test query client
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-      mutations: {
-        retry: false,
-      },
-    },
-  });
-}
-
-// Helper function to render component with QueryClient
+// Helper function to render component with QueryClient and Router
 function renderWithQueryClient(component: React.ReactElement) {
-  const queryClient = createTestQueryClient();
-  return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
-  );
+  return renderWithProviders(component);
 }
 
 describe('Home Component', () => {

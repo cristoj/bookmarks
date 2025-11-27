@@ -51,7 +51,7 @@ export interface BookmarkGridProps {
  */
 function BookmarkSkeleton(): JSX.Element {
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden w-full max-w-[320px] mx-auto animate-pulse">
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden w-full mx-auto animate-pulse">
       {/* Screenshot Skeleton */}
       <div className="aspect-video bg-gray-200" />
 
@@ -179,7 +179,7 @@ export function BookmarkGrid({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 p-4">
         {/* Loading State */}
         {isLoading &&
           Array.from({ length: skeletonCount }).map((_, index) => (

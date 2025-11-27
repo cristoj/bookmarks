@@ -3,12 +3,9 @@
  */
 
 import * as admin from "firebase-admin";
-import {expect} from "chai";
-import * as functionsTest from "firebase-functions-test";
-import {updateBookmark} from "./update";
-
-// Inicializar firebase-functions-test
-const test = functionsTest();
+import { expect } from "chai";
+import { updateBookmark } from "./update";
+import { test } from "../test-helpers";
 
 describe("updateBookmark", () => {
   let db: admin.firestore.Firestore;
@@ -17,10 +14,7 @@ describe("updateBookmark", () => {
   let testBookmarkId: string;
 
   before(async () => {
-    // Inicializar Firebase Admin si no está inicializado
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
+    // Firebase Admin ya está inicializado en test-helpers
     db = admin.firestore();
 
     // Crear bookmark de prueba
@@ -34,6 +28,7 @@ describe("updateBookmark", () => {
       folderId: null,
       screenshotUrl: null,
       screenshotStatus: "pending",
+      screenshotRetries: 0,
       createdAt: now,
       updatedAt: now,
     });
@@ -52,14 +47,15 @@ describe("updateBookmark", () => {
     const wrapped = test.wrap(updateBookmark);
     const result = await wrapped(
       {
-        bookmarkId: testBookmarkId,
-        title: "Updated Title",
-      },
-      {
+        data: {
+          bookmarkId: testBookmarkId,
+          title: "Updated Title",
+        },
+
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.success).to.be.true;
@@ -73,14 +69,14 @@ describe("updateBookmark", () => {
     const wrapped = test.wrap(updateBookmark);
     const result = await wrapped(
       {
-        bookmarkId: testBookmarkId,
-        description: "Updated description",
-      },
-      {
+        data: {
+          bookmarkId: testBookmarkId,
+          title: "Updated description",
+        },
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.success).to.be.true;
@@ -94,14 +90,14 @@ describe("updateBookmark", () => {
     const wrapped = test.wrap(updateBookmark);
     const result = await wrapped(
       {
-        bookmarkId: testBookmarkId,
-        tags: ["newtag1", "newtag2", "newtag3"],
-      },
-      {
+        ðata: {
+          bookmarkId: testBookmarkId,
+          tags: ["newtag1", "newtag2", "newtag3"],
+        },
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.success).to.be.true;
@@ -115,16 +111,17 @@ describe("updateBookmark", () => {
     const wrapped = test.wrap(updateBookmark);
     const result = await wrapped(
       {
-        bookmarkId: testBookmarkId,
-        title: "Multi Update Title",
-        description: "Multi Update Description",
-        tags: ["multi1", "multi2"],
-      },
-      {
+        ðata: {
+          bookmarkId: testBookmarkId,
+          title: "Multi Update Title",
+          description: "Multi Update Description",
+          tags: ["multi1", "multi2"],
+        },
+
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.success).to.be.true;
@@ -143,10 +140,11 @@ describe("updateBookmark", () => {
     try {
       await wrapped(
         {
-          bookmarkId: testBookmarkId,
-          title: "Should Fail",
-        },
-        {}
+          data: {
+            bookmarkId: testBookmarkId,
+            title: "Should Fail",
+          }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -160,14 +158,15 @@ describe("updateBookmark", () => {
     try {
       await wrapped(
         {
-          bookmarkId: testBookmarkId,
-          title: "Should Fail",
-        },
-        {
+          data: {
+            bookmarkId: testBookmarkId,
+            title: "Should Fail",
+          },
+
           auth: {
             uid: otherUserId,
           },
-        }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -181,14 +180,15 @@ describe("updateBookmark", () => {
     try {
       await wrapped(
         {
-          bookmarkId: "non-existent-id",
-          title: "Should Fail",
-        },
-        {
+          data: {
+            bookmarkId: "non-existent-id",
+            title: "Should Fail",
+          },
+
           auth: {
             uid: testUserId,
           },
-        }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -202,14 +202,15 @@ describe("updateBookmark", () => {
     try {
       await wrapped(
         {
-          bookmarkId: testBookmarkId,
-          title: "   ",
-        },
-        {
+          data: {
+            bookmarkId: testBookmarkId,
+            title: "   ",
+          },
+
           auth: {
             uid: testUserId,
           },
-        }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -219,19 +220,20 @@ describe("updateBookmark", () => {
 
   it("debe rechazar demasiados tags", async () => {
     const wrapped = test.wrap(updateBookmark);
-    const tooManyTags = Array.from({length: 21}, (_, i) => `tag${i}`);
+    const tooManyTags = Array.from({ length: 21 }, (_, i) => `tag${i}`);
 
     try {
       await wrapped(
         {
-          bookmarkId: testBookmarkId,
-          tags: tooManyTags,
-        },
-        {
+          ðata: {
+            bookmarkId: testBookmarkId,
+            tags: tooManyTags,
+          },
+
           auth: {
             uid: testUserId,
           },
-        }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {

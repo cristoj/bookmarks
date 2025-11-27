@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { RecaptchaVerifier, initializeRecaptchaConfig, getAuth } from 'firebase/auth';
+import { USE_FIREBASE_EMULATORS } from '@services/firebase';
 
 /**
  * Hook to manage reCAPTCHA verification
@@ -36,6 +37,34 @@ export function useRecaptcha(containerId: string = 'recaptcha-container') {
     // global `grecaptcha` to appear after calling `initializeRecaptchaConfig`.
 
     const initRecaptcha = async () => {
+      // If we're running against the Auth emulator, provide a fake
+      // verifier so UI flows that expect `verifier` and `verify()` to
+      // exist continue to work. The Auth emulator doesn't implement the
+      // recaptcha endpoints, so real initialization would fail.
+      if (USE_FIREBASE_EMULATORS) {
+        const fakeVerifier = {
+          async verify() {
+            return Promise.resolve('emulator-bypass');
+          },
+          clear() {
+            return undefined;
+          },
+          // render exists in real RecaptchaVerifier; provide a noop
+          async render() {
+            return 0;
+          },
+        } as unknown as RecaptchaVerifier;
+
+        verifierRef.current = fakeVerifier;
+        // expose a widget id so code that reads `widgetId` / grecaptcha.getResponse works
+        // when running against an emulator
+        if (typeof window !== 'undefined') {
+          // @ts-ignore
+          window.recaptchaWidgetId = 0;
+        }
+        setIsReady(true);
+        return;
+      }
       try {
         const auth = getAuth();
         

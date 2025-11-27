@@ -8,13 +8,15 @@ import {HttpsError} from "firebase-functions/v2/https";
  * Expresión regular para validar URLs
  * Permite http, https y protocolos comunes
  */
-const URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/;
+const URL_REGEX =
+  /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
 
 /**
  * Valida que una URL sea válida
  *
- * @param url - La URL a validar
- * @throws HttpsError si la URL no es válida
+ * @param {string} url - La URL a validar
+ * @return {void}
+ * @throws {HttpsError} si la URL no es válida
  */
 export function validateUrl(url: string): void {
   if (!url || typeof url !== "string") {
@@ -54,8 +56,9 @@ export interface BookmarkData {
 /**
  * Valida los datos de un bookmark
  *
- * @param data - Los datos del bookmark a validar
- * @throws HttpsError si los datos no son válidos
+ * @param {BookmarkData} data - Los datos del bookmark a validar
+ * @return {void}
+ * @throws {HttpsError} si los datos no son válidos
  */
 export function validateBookmarkData(data: BookmarkData): void {
   // Validar que data sea un objeto

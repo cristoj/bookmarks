@@ -92,9 +92,6 @@ functions/lib/
 # OS
 Thumbs.db
 
-# Vercel
-.vercel
-
 # TypeScript
 *.tsbuildinfo
 

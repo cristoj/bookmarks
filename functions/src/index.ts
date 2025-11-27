@@ -27,3 +27,4 @@ export {getPageMetadata} from "./bookmarks/metadata";
 // Exportar funciones de screenshots
 export {captureScreenshot} from "./screenshots/capture";
 export {retryFailedScreenshots} from "./screenshots/retry";
+export {onBookmarkCreated} from "./screenshots/trigger";

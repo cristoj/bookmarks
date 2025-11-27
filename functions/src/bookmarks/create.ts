@@ -7,6 +7,7 @@ import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {verifyAuth} from "../utils/auth";
 import {validateBookmarkData, BookmarkData} from "../utils/validation";
 import {updateTagCounts} from "./helpers";
+import {Timestamp} from "firebase-admin/firestore";
 
 /**
  * Interface para la respuesta de createBookmark
@@ -51,6 +52,11 @@ export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkRespons
     memory: "256MiB",
   },
   async (request) => {
+    // Inicializar Firebase Admin si no está inicializado
+    if (!admin.apps.length) {
+      admin.initializeApp();
+    }
+
     // Verificar autenticación
     const userId = verifyAuth(request);
 
@@ -66,8 +72,9 @@ export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkRespons
       );
     }
 
+    // Obtener instancia de Firestore
     const db = admin.firestore();
-    const now = admin.firestore.Timestamp.now();
+    const now = Timestamp.now();
 
     // Preparar datos del bookmark
     const bookmarkData = {
@@ -116,6 +123,7 @@ export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkRespons
     //
     // Por ahora, el cliente debe llamar manualmente a captureScreenshot
 
+    
     // Retornar el bookmark creado
     return {
       id: bookmarkRef.id,

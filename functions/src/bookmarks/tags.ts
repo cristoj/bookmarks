@@ -8,6 +8,11 @@ import {verifyAuth} from "../utils/auth";
 
 /**
  * Interface para un tag
+
+// Inicializar Firebase Admin si no está inicializado
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
  */
 export interface Tag {
   name: string;

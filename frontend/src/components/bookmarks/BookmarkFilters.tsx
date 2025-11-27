@@ -2,6 +2,7 @@ import React, { useState, useEffect, type JSX } from 'react';
 import { Search, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
+import { TagAutocompleteInput } from '../common/TagAutocompleteInput';
 import { useDebounce } from '../../hooks/useDebounce';
 import type { Tag } from '../../services/bookmarks.service';
 
@@ -95,9 +96,6 @@ export function BookmarkFilters({
   // Mobile collapse state
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Tag selector dropdown state
-  const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
-
   // Update filters when debounced search changes
   useEffect(() => {
     if (debouncedSearch !== filters.search) {
@@ -113,24 +111,10 @@ export function BookmarkFilters({
   };
 
   /**
-   * Toggle tag selection
+   * Handle tags change
    */
-  const toggleTag = (tagName: string) => {
-    const newTags = filters.tags.includes(tagName)
-      ? filters.tags.filter((t) => t !== tagName)
-      : [...filters.tags, tagName];
-
-    onFilterChange({ ...filters, tags: newTags });
-  };
-
-  /**
-   * Remove a specific tag
-   */
-  const removeTag = (tagName: string) => {
-    onFilterChange({
-      ...filters,
-      tags: filters.tags.filter((t) => t !== tagName),
-    });
+  const handleTagsChange = (tags: string[]) => {
+    onFilterChange({ ...filters, tags });
   };
 
   /**
@@ -209,7 +193,7 @@ export function BookmarkFilters({
 
       {/* Filters Content */}
       <div className={`${isCollapsed ? 'hidden md:block' : 'block'}`}>
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-11 gap-4">
           {/* Search Input */}
           <div className="md:col-span-4">
             <div className="relative">
@@ -225,100 +209,38 @@ export function BookmarkFilters({
             </div>
           </div>
 
-          {/* Tag Selector */}
-          <div className="md:col-span-4 relative">
-            <div>
-              <button
-                onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors flex items-center justify-between bg-white"
-                aria-label="Select tags"
-                aria-expanded={isTagDropdownOpen}
-              >
-                <span className="text-gray-700">
-                  {filters.tags.length > 0
-                    ? `${filters.tags.length} tag${filters.tags.length > 1 ? 's' : ''} selected`
-                    : 'Select tags...'}
-                </span>
-                <ChevronDown className="w-5 h-5 text-gray-400" />
-              </button>
-
-              {/* Tag Dropdown */}
-              {isTagDropdownOpen && (
-                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {availableTags.length === 0 ? (
-                    <div className="px-3 py-2 text-sm text-gray-500">No tags available</div>
-                  ) : (
-                    availableTags.map((tag) => (
-                      <button
-                        key={tag.name}
-                        onClick={() => toggleTag(tag.name)}
-                        className={`w-full px-3 py-2 text-left hover:bg-gray-50 transition-colors flex items-center justify-between ${
-                          filters.tags.includes(tag.name) ? 'bg-blue-50' : ''
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={filters.tags.includes(tag.name)}
-                            onChange={() => {}}
-                            className="w-4 h-4 text-blue-500 rounded focus:ring-blue-500"
-                            aria-label={`Filter by tag ${tag.name}`}
-                          />
-                          <span className="text-sm text-gray-700">{tag.name}</span>
-                        </span>
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                          {tag.count}
-                        </span>
-                      </button>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Selected Tags Badges */}
-            {filters.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {filters.tags.map((tagName) => (
-                  <span
-                    key={tagName}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700"
-                  >
-                    {tagName}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tagName)}
-                      className="ml-1.5 inline-flex items-center justify-center hover:bg-blue-200 rounded-full focus:outline-none"
-                      aria-label={`Remove tag ${tagName}`}
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+          {/* Tag Autocomplete Selector */}
+          <div className="md:col-span-4">
+            <TagAutocompleteInput
+              value={filters.tags}
+              onChange={handleTagsChange}
+              availableTags={availableTags}
+              placeholder="Type to search tags..."
+              debounceMs={500}
+              minSearchChars={2}
+            />
           </div>
 
           {/* Date Range */}
-          <div className="md:col-span-3">
-            <div className="flex flex-col gap-2">
-              <Input
-                type="date"
-                value={filters.dateFrom}
-                onChange={handleDateFromChange}
-                placeholder="From date"
-                className="text-sm"
-                aria-label="Filter from date"
-              />
-              <Input
-                type="date"
-                value={filters.dateTo}
-                onChange={handleDateToChange}
-                placeholder="To date"
-                className="text-sm"
-                aria-label="Filter to date"
-              />
-            </div>
+          <div className="md:col-span-1">
+            <Input
+              type="date"
+              value={filters.dateFrom}
+              onChange={handleDateFromChange}
+              placeholder="From date"
+              className="text-sm"
+              aria-label="Filter from date"
+            />
+          </div>
+          <div className="md:col-span-1">
+            <Input
+              type="date"
+              value={filters.dateTo}
+              onChange={handleDateToChange}
+              placeholder="To date"
+              className="text-sm"
+              aria-label="Filter to date"
+            />
           </div>
 
           {/* Action Buttons */}
@@ -352,15 +274,6 @@ export function BookmarkFilters({
           </div>
         </div>
       </div>
-
-      {/* Close dropdown when clicking outside */}
-      {isTagDropdownOpen && (
-        <div
-          className="fixed inset-0 z-10"
-          onClick={() => setIsTagDropdownOpen(false)}
-          aria-hidden="true"
-        />
-      )}
     </div>
   );
 }

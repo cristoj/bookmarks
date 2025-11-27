@@ -66,9 +66,9 @@ export function BookmarkCard({
   } = bookmark;
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 w-full max-w-[320px] mx-auto">
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 w-full mx-auto">
       {/* Screenshot Section */}
-      <div className="relative aspect-video bg-gray-100">
+      <div className="relative aspect-video bg-black">
         {screenshotUrl ? (
           <img
             src={screenshotUrl}
@@ -86,7 +86,7 @@ export function BookmarkCard({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center group"
+          className="absolute inset-0 bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 flex items-center justify-center group"
           aria-label={`Visitar ${title}`}
         >
           <ExternalLink className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />

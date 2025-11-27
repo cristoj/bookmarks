@@ -3,12 +3,9 @@
  */
 
 import * as admin from "firebase-admin";
-import {expect} from "chai";
-import * as functionsTest from "firebase-functions-test";
-import {getBookmarks} from "./get";
-
-// Inicializar firebase-functions-test
-const test = functionsTest();
+import { expect } from "chai";
+import { getBookmarks } from "./get";
+import { test } from "../test-helpers";
 
 describe("getBookmarks", () => {
   let db: admin.firestore.Firestore;
@@ -16,10 +13,7 @@ describe("getBookmarks", () => {
   const createdBookmarkIds: string[] = [];
 
   before(async () => {
-    // Inicializar Firebase Admin si no está inicializado
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
+    // Firebase Admin ya está inicializado en test-helpers
     db = admin.firestore();
 
     // Crear bookmarks de prueba
@@ -34,6 +28,7 @@ describe("getBookmarks", () => {
       folderId: null,
       screenshotUrl: null,
       screenshotStatus: "pending",
+      screenshotRetries: 0,
       createdAt: now,
       updatedAt: now,
     });
@@ -48,6 +43,7 @@ describe("getBookmarks", () => {
       folderId: null,
       screenshotUrl: null,
       screenshotStatus: "pending",
+      screenshotRetries: 0,
       createdAt: admin.firestore.Timestamp.fromDate(
         new Date(Date.now() - 1000)
       ),
@@ -64,6 +60,7 @@ describe("getBookmarks", () => {
       folderId: "folder1",
       screenshotUrl: null,
       screenshotStatus: "pending",
+      screenshotRetries: 0,
       createdAt: admin.firestore.Timestamp.fromDate(
         new Date(Date.now() - 2000)
       ),
@@ -83,12 +80,13 @@ describe("getBookmarks", () => {
   it("debe obtener todos los bookmarks del usuario", async () => {
     const wrapped = test.wrap(getBookmarks);
     const result = await wrapped(
-      {limit: 20},
       {
+        data: { limit: 20 },
+
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.data).to.be.an("array");
@@ -100,14 +98,15 @@ describe("getBookmarks", () => {
     const wrapped = test.wrap(getBookmarks);
     const result = await wrapped(
       {
-        limit: 20,
-        tags: ["tag1"],
-      },
-      {
+        data: {
+          limit: 20,
+          tags: ["tag1"],
+        },
+
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.data).to.be.an("array");
@@ -121,14 +120,15 @@ describe("getBookmarks", () => {
     const wrapped = test.wrap(getBookmarks);
     const result = await wrapped(
       {
-        limit: 20,
-        search: "Second",
-      },
-      {
+        data: {
+          limit: 20,
+          search: "Second",
+        },
+
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.data).to.be.an("array");
@@ -140,14 +140,15 @@ describe("getBookmarks", () => {
     const wrapped = test.wrap(getBookmarks);
     const result = await wrapped(
       {
-        limit: 20,
-        folderId: "folder1",
-      },
-      {
+        data: {
+          limit: 20,
+          folderId: "folder1",
+        },
+
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.data).to.be.an("array");
@@ -162,12 +163,13 @@ describe("getBookmarks", () => {
 
     // Primera página
     const firstPage = await wrapped(
-      {limit: 1},
       {
+        data: { limit: 1 },
+
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(firstPage.data).to.have.lengthOf(1);
@@ -177,14 +179,15 @@ describe("getBookmarks", () => {
     // Segunda página
     const secondPage = await wrapped(
       {
-        limit: 1,
-        lastDocId: firstPage.lastDocId,
-      },
-      {
+        data: {
+          limit: 1,
+          lastDocId: firstPage.lastDocId,
+        },
+
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(secondPage.data).to.have.lengthOf(1);
@@ -195,7 +198,7 @@ describe("getBookmarks", () => {
     const wrapped = test.wrap(getBookmarks);
 
     try {
-      await wrapped({limit: 20}, {});
+      await wrapped({ data: { limit: 20 } } as any);
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
       expect(error.code).to.equal("unauthenticated");

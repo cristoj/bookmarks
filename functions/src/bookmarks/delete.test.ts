@@ -3,12 +3,9 @@
  */
 
 import * as admin from "firebase-admin";
-import {expect} from "chai";
-import * as functionsTest from "firebase-functions-test";
-import {deleteBookmark} from "./delete";
-
-// Inicializar firebase-functions-test
-const test = functionsTest();
+import { expect } from "chai";
+import { deleteBookmark } from "./delete";
+import { test } from "../test-helpers";
 
 describe("deleteBookmark", () => {
   let db: admin.firestore.Firestore;
@@ -17,10 +14,7 @@ describe("deleteBookmark", () => {
   let testBookmarkId: string;
 
   beforeEach(async () => {
-    // Inicializar Firebase Admin si no está inicializado
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
+    // Firebase Admin ya está inicializado en test-helpers
     db = admin.firestore();
 
     // Crear bookmark de prueba para cada test
@@ -34,6 +28,7 @@ describe("deleteBookmark", () => {
       folderId: null,
       screenshotUrl: null,
       screenshotStatus: "pending",
+      screenshotRetries: 0,
       createdAt: now,
       updatedAt: now,
     });
@@ -46,15 +41,16 @@ describe("deleteBookmark", () => {
 
   it("debe eliminar un bookmark correctamente", async () => {
     const wrapped = test.wrap(deleteBookmark);
-    const result = await wrapped(
+    const result = await wrapped({
+      data:
       {
         bookmarkId: testBookmarkId,
       },
-      {
-        auth: {
-          uid: testUserId,
-        },
-      }
+
+      auth: {
+        uid: testUserId,
+      },
+    } as any
     );
 
     expect(result.success).to.be.true;
@@ -69,11 +65,11 @@ describe("deleteBookmark", () => {
     const wrapped = test.wrap(deleteBookmark);
 
     try {
-      await wrapped(
-        {
+      await wrapped({
+        data: {
           bookmarkId: testBookmarkId,
-        },
-        {}
+        }
+      } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -89,15 +85,14 @@ describe("deleteBookmark", () => {
     const wrapped = test.wrap(deleteBookmark);
 
     try {
-      await wrapped(
-        {
+      await wrapped({
+        data: {
           bookmarkId: testBookmarkId,
         },
-        {
-          auth: {
-            uid: otherUserId,
-          },
+        auth: {
+          uid: otherUserId,
         }
+      } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -115,13 +110,14 @@ describe("deleteBookmark", () => {
     try {
       await wrapped(
         {
-          bookmarkId: "non-existent-id",
-        },
-        {
+          data: {
+            bookmarkId: "non-existent-id",
+          },
+
           auth: {
             uid: testUserId,
           },
-        }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -133,15 +129,15 @@ describe("deleteBookmark", () => {
     const wrapped = test.wrap(deleteBookmark);
 
     try {
-      await wrapped(
+      await wrapped({
+        data:
         {
           bookmarkId: "",
         },
-        {
-          auth: {
-            uid: testUserId,
-          },
-        }
+        auth: {
+          uid: testUserId,
+        },
+      } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -158,13 +154,13 @@ describe("deleteBookmark", () => {
     const wrapped = test.wrap(deleteBookmark);
     const result = await wrapped(
       {
-        bookmarkId: testBookmarkId,
-      },
-      {
+        data: {
+          bookmarkId: testBookmarkId,
+        },
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.success).to.be.true;

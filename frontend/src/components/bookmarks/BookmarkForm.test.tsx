@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { BookmarkForm } from './BookmarkForm';
 import type { Bookmark } from '../../services/bookmarks.service';
+import { renderWithQuery } from '../../test/test-utils';
 
 /**
  * Test suite for BookmarkForm component
@@ -37,7 +38,7 @@ describe('BookmarkForm', () => {
    * Test: Should render form in create mode
    */
   it('should render form in create mode', () => {
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -56,7 +57,7 @@ describe('BookmarkForm', () => {
    * Test: Should render form in edit mode with pre-filled data
    */
   it('should render form in edit mode with pre-filled data', () => {
-    render(
+    renderWithQuery(
       <BookmarkForm
         bookmark={mockBookmark}
         onSave={mockHandlers.onSave}
@@ -81,7 +82,7 @@ describe('BookmarkForm', () => {
    */
   it('should validate required URL field', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -103,7 +104,7 @@ describe('BookmarkForm', () => {
    */
   it('should validate URL format', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -131,7 +132,7 @@ describe('BookmarkForm', () => {
    */
   it('should validate required title field', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -156,7 +157,7 @@ describe('BookmarkForm', () => {
    */
   it('should validate title minimum length', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -184,7 +185,7 @@ describe('BookmarkForm', () => {
    */
   it('should submit form with valid data in create mode', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -217,7 +218,7 @@ describe('BookmarkForm', () => {
    */
   it('should submit form with tags', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -253,7 +254,7 @@ describe('BookmarkForm', () => {
    */
   it('should call onCancel when cancel button is clicked', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -270,7 +271,7 @@ describe('BookmarkForm', () => {
    * Test: Should disable form when isLoading is true
    */
   it('should disable form when isLoading is true', () => {
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -295,7 +296,7 @@ describe('BookmarkForm', () => {
    * Test: Should disable URL field in edit mode
    */
   it('should disable URL field in edit mode', () => {
-    render(
+    renderWithQuery(
       <BookmarkForm
         bookmark={mockBookmark}
         onSave={mockHandlers.onSave}
@@ -312,7 +313,7 @@ describe('BookmarkForm', () => {
    */
   it('should trim whitespace from inputs', async () => {
     const user = userEvent.setup();
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}
@@ -342,7 +343,7 @@ describe('BookmarkForm', () => {
    * Test: Should show loading state on submit button
    */
   it('should show loading state on submit button', () => {
-    render(
+    renderWithQuery(
       <BookmarkForm
         onSave={mockHandlers.onSave}
         onCancel={mockHandlers.onCancel}

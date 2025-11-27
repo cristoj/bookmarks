@@ -11,6 +11,9 @@ export type { TextareaProps } from './Textarea';
 export { TagInput } from './TagInput';
 export type { TagInputProps } from './TagInput';
 
+export { TagAutocompleteInput } from './TagAutocompleteInput';
+export type { TagAutocompleteInputProps } from './TagAutocompleteInput';
+
 export { Card } from './Card';
 export type { CardProps } from './Card';
 

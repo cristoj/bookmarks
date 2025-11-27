@@ -36,15 +36,15 @@ interface MetadataRequest {
  * 3. Tag <title>
  *
  * @param $ - Cheerio instance
- * @returns El título extraído o string vacío
+ * @return El título extraído o string vacío
  */
 function extractTitle($: ReturnType<typeof load>): string {
   // Intentar Open Graph title
-  let title = $('meta[property="og:title"]').attr("content");
+  let title = $("meta[property=\"og:title\"]").attr("content");
   if (title) return title.trim();
 
   // Intentar Twitter title
-  title = $('meta[name="twitter:title"]').attr("content");
+  title = $("meta[name=\"twitter:title\"]").attr("content");
   if (title) return title.trim();
 
   // Intentar tag <title>
@@ -62,19 +62,19 @@ function extractTitle($: ReturnType<typeof load>): string {
  * 3. Meta tag description
  *
  * @param $ - Cheerio instance
- * @returns La descripción extraída o string vacío
+ * @return La descripción extraída o string vacío
  */
 function extractDescription($: ReturnType<typeof load>): string {
   // Intentar Open Graph description
-  let description = $('meta[property="og:description"]').attr("content");
+  let description = $("meta[property=\"og:description\"]").attr("content");
   if (description) return description.trim();
 
   // Intentar Twitter description
-  description = $('meta[name="twitter:description"]').attr("content");
+  description = $("meta[name=\"twitter:description\"]").attr("content");
   if (description) return description.trim();
 
   // Intentar meta description estándar
-  description = $('meta[name="description"]').attr("content");
+  description = $("meta[name=\"description\"]").attr("content");
   if (description) return description.trim();
 
   return "";

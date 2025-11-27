@@ -6,8 +6,14 @@ import * as admin from "firebase-admin";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {verifyAuth} from "../utils/auth";
 import {updateTagCounts} from "./helpers";
+import {Timestamp} from "firebase-admin/firestore";
 
 /**
+
+// Inicializar Firebase Admin si no está inicializado
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
  * Interface para los parámetros de updateBookmark
  */
 export interface UpdateBookmarkParams {
@@ -49,7 +55,10 @@ export interface UpdateBookmarkResponse {
  * });
  * ```
  */
-export const updateBookmark = onCall<UpdateBookmarkParams, Promise<UpdateBookmarkResponse>>(
+export const updateBookmark = onCall<
+  UpdateBookmarkParams,
+  Promise<UpdateBookmarkResponse>
+>(
   {
     timeoutSeconds: 60,
     memory: "256MiB",
@@ -90,8 +99,14 @@ export const updateBookmark = onCall<UpdateBookmarkParams, Promise<UpdateBookmar
     }
 
     // Preparar datos de actualización
-    const updateData: any = {
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    const updateData: {
+      updatedAt: admin.firestore.FieldValue;
+      title?: string;
+      description?: string;
+      tags?: string[];
+      folderId?: string | null;
+    } = {
+      updatedAt: Timestamp.now(),
     };
 
     // Validar y agregar campos opcionales
@@ -134,7 +149,7 @@ export const updateBookmark = onCall<UpdateBookmarkParams, Promise<UpdateBookmar
     }
 
     // Manejar actualización de tags
-    let oldTags: string[] = bookmarkData?.tags || [];
+    const oldTags: string[] = bookmarkData?.tags || [];
     let newTags: string[] = oldTags;
 
     if (tags !== undefined) {

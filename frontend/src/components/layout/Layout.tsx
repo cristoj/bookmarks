@@ -77,7 +77,7 @@ export function Layout({
       <main
         className={`w-full ${!hideHeader ? 'pt-16' : ''}`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {children}
         </div>
       </main>

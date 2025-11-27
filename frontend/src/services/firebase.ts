@@ -26,6 +26,9 @@ const firebaseConfig = {
  */
 const app: FirebaseApp = initializeApp(firebaseConfig);
 
+// Flag to indicate whether the app should connect to local Firebase emulators
+export const USE_FIREBASE_EMULATORS = import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATORS === 'true';
+
 /**
  * Firebase Authentication instance
  * Used for user authentication (login, register, logout, etc.)

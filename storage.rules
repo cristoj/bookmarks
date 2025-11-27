@@ -21,8 +21,9 @@ service firebase.storage {
 
     // Screenshots storage - organized by userId
     match /screenshots/{userId}/{fileName} {
-      // Users can read their own screenshots
-      allow read: if isAuthenticated() && isOwner(userId);
+      // Screenshots are publicly readable (no sensitive data)
+      // This allows sharing screenshots and simplifies access in development
+      allow read: if true;
 
       // Users can upload screenshots (with restrictions)
       allow write: if isAuthenticated() &&

@@ -3,6 +3,24 @@
  */
 
 import * as admin from "firebase-admin";
+import {Timestamp, FieldValue} from "firebase-admin/firestore";
+
+/**
+ * Normaliza un tag para usarlo como document ID
+ * - Convierte a minúsculas
+ * - Reemplaza espacios con guiones
+ * - Elimina caracteres especiales
+ *
+ * @param tag - Tag a normalizar
+ * @returns Tag normalizado para usar como document ID
+ */
+function normalizeTagForId(tag: string): string {
+  return tag
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-") // Reemplazar espacios con guiones
+    .replace(/[^a-z0-9-]/g, ""); // Eliminar caracteres especiales
+}
 
 /**
  * Actualiza los conteos de tags en Firestore
@@ -20,14 +38,15 @@ export async function updateTagCounts(
 
   // Incrementar contadores para tags nuevos
   for (const tag of tagsToAdd) {
-    if (!tag) continue;
-    const tagRef = db.collection("tags").doc(tag.toLowerCase());
+    if (!tag || !tag.trim()) continue;
+    const tagId = normalizeTagForId(tag);
+    const tagRef = db.collection("tags").doc(tagId);
     batch.set(
       tagRef,
       {
-        name: tag,
-        count: admin.firestore.FieldValue.increment(1),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        name: tag.trim(),
+        count: FieldValue.increment(1),
+        updatedAt: Timestamp.now(),
       },
       {merge: true}
     );
@@ -35,13 +54,24 @@ export async function updateTagCounts(
 
   // Decrementar contadores para tags removidos
   for (const tag of tagsToRemove) {
-    if (!tag) continue;
-    const tagRef = db.collection("tags").doc(tag.toLowerCase());
-    batch.update(tagRef, {
-      count: admin.firestore.FieldValue.increment(-1),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    if (!tag || !tag.trim()) continue;
+    const tagId = normalizeTagForId(tag);
+    const tagRef = db.collection("tags").doc(tagId);
+
+    // Usar set con merge en lugar de update para evitar errores
+    // si el documento no existe
+    batch.set(
+      tagRef,
+      {
+        count: FieldValue.increment(-1),
+        updatedAt: Timestamp.now(),
+      },
+      {merge: true}
+    );
   }
 
-  await batch.commit();
+  // Solo hacer commit si hay operaciones
+  if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
+    await batch.commit();
+  }
 }

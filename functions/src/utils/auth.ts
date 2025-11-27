@@ -7,9 +7,9 @@ import {CallableRequest, HttpsError} from "firebase-functions/v2/https";
 /**
  * Verifica que el usuario esté autenticado en una Cloud Function
  *
- * @param request - El contexto de la llamada de la función
- * @returns El userId del usuario autenticado
- * @throws HttpsError si el usuario no está autenticado
+ * @param {CallableRequest} request - El contexto de la llamada
+ * @return {string} El userId del usuario autenticado
+ * @throws {HttpsError} si el usuario no está autenticado
  */
 export function verifyAuth(request: CallableRequest): string {
   // Verificar que el usuario esté autenticado

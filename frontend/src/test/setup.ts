@@ -28,6 +28,7 @@ vi.mock('firebase/auth', () => ({
   }),
   updateProfile: vi.fn(),
   connectAuthEmulator: vi.fn(),
+  initializeRecaptchaConfig: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('firebase/firestore', () => ({
@@ -60,17 +61,7 @@ vi.mock('firebase/functions', () => ({
   connectFunctionsEmulator: vi.fn(),
 }));
 
-// Mock react-router-dom
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: vi.fn(() => vi.fn()),
-    useLocation: vi.fn(() => ({ pathname: '/', state: null })),
-    Link: vi.fn(({ children }: any) => children),
-    Navigate: vi.fn(() => null),
-  };
-});
+// No mocking react-router-dom - let it work naturally in tests
 
 // Suppress console errors in tests (optional)
 const originalError = console.error;

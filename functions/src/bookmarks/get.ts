@@ -8,6 +8,11 @@ import {verifyAuth} from "../utils/auth";
 
 /**
  * Interface para los parámetros de getBookmarks
+
+// Inicializar Firebase Admin si no está inicializado
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
  */
 export interface GetBookmarksParams {
   limit?: number;

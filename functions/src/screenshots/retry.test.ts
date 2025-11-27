@@ -4,10 +4,7 @@
 
 import * as admin from "firebase-admin";
 import {expect} from "chai";
-import * as functionsTest from "firebase-functions-test";
-
-// Inicializar firebase-functions-test
-const test = functionsTest();
+import { test } from "../test-helpers";
 
 describe("retryFailedScreenshots", () => {
   let db: admin.firestore.Firestore;
@@ -15,10 +12,7 @@ describe("retryFailedScreenshots", () => {
   const createdBookmarkIds: string[] = [];
 
   before(async () => {
-    // Inicializar Firebase Admin si no está inicializado
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
+    // Firebase Admin ya está inicializado en test-helpers
     db = admin.firestore();
   });
 

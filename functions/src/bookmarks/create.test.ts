@@ -2,27 +2,12 @@
  * Tests para createBookmark Cloud Function
  */
 
-import * as admin from "firebase-admin";
-import {expect} from "chai";
-import * as functionsTest from "firebase-functions-test";
-import {createBookmark} from "./create";
-
-// Inicializar firebase-functions-test
-const test = functionsTest();
+import { expect } from "chai";
+import { createBookmark } from "./create";
+import { test } from "../test-helpers";
 
 describe("createBookmark", () => {
-  let db: admin.firestore.Firestore;
-
-  before(() => {
-    // Inicializar Firebase Admin si no está inicializado
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
-    db = admin.firestore();
-  });
-
   after(() => {
-    // Limpiar
     test.cleanup();
   });
 
@@ -35,11 +20,12 @@ describe("createBookmark", () => {
     };
 
     const wrapped = test.wrap(createBookmark);
-    const result = await wrapped(data, {
+    const result = await wrapped({
+      data,
       auth: {
         uid: "test-user-123",
       },
-    });
+    } as any);
 
     expect(result).to.have.property("id");
     expect(result.url).to.equal(data.url);
@@ -47,11 +33,6 @@ describe("createBookmark", () => {
     expect(result.description).to.equal(data.description);
     expect(result.tags).to.deep.equal(data.tags);
     expect(result.userId).to.equal("test-user-123");
-
-    // Limpiar documento creado
-    if (result.id) {
-      await db.collection("bookmarks").doc(result.id).delete();
-    }
   });
 
   it("debe rechazar bookmark sin título", async () => {
@@ -63,11 +44,12 @@ describe("createBookmark", () => {
     const wrapped = test.wrap(createBookmark);
 
     try {
-      await wrapped(data, {
+      await wrapped({
+        data,
         auth: {
           uid: "test-user-123",
-        },
-      });
+        }
+      } as any);
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
       expect(error.code).to.equal("invalid-argument");
@@ -83,7 +65,7 @@ describe("createBookmark", () => {
     const wrapped = test.wrap(createBookmark);
 
     try {
-      await wrapped(data, {});
+      await wrapped({ data } as any);
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
       expect(error.code).to.equal("unauthenticated");
@@ -99,11 +81,12 @@ describe("createBookmark", () => {
     const wrapped = test.wrap(createBookmark);
 
     try {
-      await wrapped(data, {
+      await wrapped({
+        data,
         auth: {
           uid: "test-user-123",
         },
-      });
+      } as any);
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
       expect(error.code).to.equal("invalid-argument");
@@ -117,18 +100,14 @@ describe("createBookmark", () => {
     };
 
     const wrapped = test.wrap(createBookmark);
-    const result = await wrapped(data, {
+    const result = await wrapped({
+      data,
       auth: {
         uid: "test-user-123",
       },
-    });
+    } as any);
 
     expect(result).to.have.property("id");
     expect(result.tags).to.deep.equal([]);
-
-    // Limpiar
-    if (result.id) {
-      await db.collection("bookmarks").doc(result.id).delete();
-    }
   });
 });

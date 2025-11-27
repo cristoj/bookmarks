@@ -6,12 +6,11 @@
  */
 
 import * as admin from "firebase-admin";
-import {expect} from "chai";
-import * as functionsTest from "firebase-functions-test";
-import {captureScreenshot} from "./capture";
+import { expect } from "chai";
+import { captureScreenshot } from "./capture";
+import { test } from "../test-helpers";
 
-// Inicializar firebase-functions-test
-const test = functionsTest();
+const { wrap, cleanup } = test;
 
 describe("captureScreenshot", () => {
   let db: admin.firestore.Firestore;
@@ -20,10 +19,7 @@ describe("captureScreenshot", () => {
   let testBookmarkId: string;
 
   before(async () => {
-    // Inicializar Firebase Admin si no está inicializado
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
+    // Firebase Admin ya está inicializado en test-helpers
     db = admin.firestore();
   });
 
@@ -39,6 +35,7 @@ describe("captureScreenshot", () => {
       folderId: null,
       screenshotUrl: null,
       screenshotStatus: "pending",
+      screenshotRetries: 0,
       createdAt: now,
       updatedAt: now,
     });
@@ -66,24 +63,22 @@ describe("captureScreenshot", () => {
   });
 
   after(() => {
-    test.cleanup();
+    cleanup();
   });
 
-  it("debe capturar screenshot correctamente para URL válida", async function() {
+  it("debe capturar screenshot correctamente para URL válida", async function () {
     // Este test puede tardar debido a Puppeteer
     this.timeout(60000);
 
-    const wrapped = test.wrap(captureScreenshot);
-    const result = await wrapped(
+    const wrapped = wrap(captureScreenshot);
+    const result = await wrapped({
+      data:
       {
         bookmarkId: testBookmarkId,
-        url: "https://example.com",
+        url: "https://example.com"
       },
-      {
-        auth: {
-          uid: testUserId,
-        },
-      }
+      auth: { uid: testUserId }
+    } as any
     );
 
     expect(result.success).to.be.true;
@@ -106,26 +101,24 @@ describe("captureScreenshot", () => {
     expect(exists).to.be.true;
   });
 
-  it("debe actualizar estado a processing durante captura", async function() {
+  it("debe actualizar estado a processing durante captura", async function () {
     this.timeout(60000);
 
-    const wrapped = test.wrap(captureScreenshot);
+    const wrapped = wrap(captureScreenshot);
 
     // Ejecutar captura
-    const resultPromise = wrapped(
+    wrapped({
+      data:
       {
         bookmarkId: testBookmarkId,
-        url: "https://example.com",
+        url: "https://example.com"
       },
-      {
-        auth: {
-          uid: testUserId,
-        },
-      }
+      auth: { uid: testUserId }
+    } as any
     );
 
     // Esperar un poco y verificar estado
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const resultPromise = await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const bookmark = await db.collection("bookmarks").doc(testBookmarkId).get();
     const data = bookmark.data();
@@ -137,20 +130,20 @@ describe("captureScreenshot", () => {
     await resultPromise;
   });
 
-  it("debe manejar error para URL inválida sin lanzar excepción", async function() {
+  it("debe manejar error para URL inválida sin lanzar excepción", async function () {
     this.timeout(60000);
 
-    const wrapped = test.wrap(captureScreenshot);
-    const result = await wrapped(
+    const wrapped = wrap(captureScreenshot);
+    const result = await wrapped({
+      data:
       {
         bookmarkId: testBookmarkId,
         url: "https://this-domain-should-not-exist-12345678.com",
       },
-      {
-        auth: {
-          uid: testUserId,
-        },
+      auth: {
+        uid: testUserId,
       }
+    } as any
     );
 
     expect(result.success).to.be.false;
@@ -166,15 +159,17 @@ describe("captureScreenshot", () => {
   });
 
   it("debe rechazar captura sin autenticación", async () => {
-    const wrapped = test.wrap(captureScreenshot);
+    const wrapped = wrap(captureScreenshot);
 
     try {
       await wrapped(
         {
-          bookmarkId: testBookmarkId,
-          url: "https://example.com",
-        },
-        {}
+          data:
+          {
+            bookmarkId: testBookmarkId,
+            url: "https://example.com",
+          }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -183,19 +178,20 @@ describe("captureScreenshot", () => {
   });
 
   it("debe rechazar captura de bookmark de otro usuario", async () => {
-    const wrapped = test.wrap(captureScreenshot);
+    const wrapped = wrap(captureScreenshot);
 
     try {
       await wrapped(
         {
-          bookmarkId: testBookmarkId,
-          url: "https://example.com",
-        },
-        {
+          data:
+          {
+            bookmarkId: testBookmarkId,
+            url: "https://example.com",
+          },
           auth: {
             uid: otherUserId,
           },
-        }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -204,19 +200,20 @@ describe("captureScreenshot", () => {
   });
 
   it("debe rechazar bookmarkId inválido", async () => {
-    const wrapped = test.wrap(captureScreenshot);
+    const wrapped = wrap(captureScreenshot);
 
     try {
       await wrapped(
         {
-          bookmarkId: "",
-          url: "https://example.com",
-        },
-        {
+          data:
+          {
+            bookmarkId: "",
+            url: "https://example.com",
+          },
           auth: {
             uid: testUserId,
           },
-        }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -225,19 +222,21 @@ describe("captureScreenshot", () => {
   });
 
   it("debe rechazar URL malformada", async () => {
-    const wrapped = test.wrap(captureScreenshot);
+    const wrapped = wrap(captureScreenshot);
 
     try {
       await wrapped(
         {
-          bookmarkId: testBookmarkId,
-          url: "not-a-valid-url",
-        },
-        {
+          data:
+          {
+            bookmarkId: testBookmarkId,
+            url: "not-a-valid-url",
+          },
+
           auth: {
             uid: testUserId,
           },
-        }
+        } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -246,19 +245,20 @@ describe("captureScreenshot", () => {
   });
 
   it("debe rechazar bookmark inexistente", async () => {
-    const wrapped = test.wrap(captureScreenshot);
+    const wrapped = wrap(captureScreenshot);
 
     try {
-      await wrapped(
+      await wrapped({
+        data:
         {
           bookmarkId: "non-existent-id",
           url: "https://example.com",
         },
-        {
-          auth: {
-            uid: testUserId,
-          },
-        }
+
+        auth: {
+          uid: testUserId,
+        },
+      } as any
       );
       expect.fail("Debería haber lanzado un error");
     } catch (error: any) {
@@ -266,20 +266,21 @@ describe("captureScreenshot", () => {
     }
   });
 
-  it("debe generar path de Storage correcto", async function() {
+  it("debe generar path de Storage correcto", async function () {
     this.timeout(60000);
 
-    const wrapped = test.wrap(captureScreenshot);
+    const wrapped = wrap(captureScreenshot);
     const result = await wrapped(
       {
-        bookmarkId: testBookmarkId,
-        url: "https://example.com",
-      },
-      {
+        data:
+        {
+          bookmarkId: testBookmarkId,
+          url: "https://example.com",
+        },
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.success).to.be.true;
@@ -293,20 +294,21 @@ describe("captureScreenshot", () => {
     expect(data?.screenshotPath).to.include(".png");
   });
 
-  it("debe incluir metadata en archivo de Storage", async function() {
+  it("debe incluir metadata en archivo de Storage", async function () {
     this.timeout(60000);
 
-    const wrapped = test.wrap(captureScreenshot);
+    const wrapped = wrap(captureScreenshot);
     const result = await wrapped(
       {
-        bookmarkId: testBookmarkId,
-        url: "https://example.com",
-      },
-      {
+        data:
+        {
+          bookmarkId: testBookmarkId,
+          url: "https://example.com",
+        },
         auth: {
           uid: testUserId,
         },
-      }
+      } as any
     );
 
     expect(result.success).to.be.true;
@@ -319,8 +321,8 @@ describe("captureScreenshot", () => {
     const [metadata] = await bucket.file(data?.screenshotPath).getMetadata();
 
     expect(metadata.contentType).to.equal("image/png");
-    expect(metadata.metadata.bookmarkId).to.equal(testBookmarkId);
-    expect(metadata.metadata.userId).to.equal(testUserId);
-    expect(metadata.metadata.capturedAt).to.be.a("string");
+    expect(metadata.metadata?.bookmarkId).to.equal(testBookmarkId);
+    expect(metadata.metadata?.userId).to.equal(testUserId);
+    expect(metadata.metadata?.capturedAt).to.be.a("string");
   });
 });

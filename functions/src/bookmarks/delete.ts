@@ -8,6 +8,11 @@ import {verifyAuth} from "../utils/auth";
 import {updateTagCounts} from "./helpers";
 
 /**
+
+// Inicializar Firebase Admin si no está inicializado
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
  * Interface para los parámetros de deleteBookmark
  */
 export interface DeleteBookmarkParams {

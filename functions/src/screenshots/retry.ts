@@ -8,7 +8,9 @@
 import * as admin from "firebase-admin";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import {logger} from "firebase-functions/v2";
-import {captureScreenshot} from "./capture";
+import {captureScreenshot, type CaptureScreenshotParams} from "./capture";
+import type {CallableRequest} from "firebase-functions/v2/https";
+import { Timestamp } from "firebase-admin/firestore";
 
 /**
  * Cloud Function scheduled para reintentar capturas de screenshots fallidos
@@ -36,7 +38,7 @@ export const retryFailedScreenshots = onSchedule(
     timeoutSeconds: 540, // 9 minutos (permitir tiempo para 50 capturas)
     memory: "512MiB",
   },
-  async (event) => {
+  async (_event) => {
     logger.info("Iniciando reintento de screenshots fallidos");
 
     const db = admin.firestore();
@@ -86,7 +88,7 @@ export const retryFailedScreenshots = onSchedule(
           // Incrementar contador de reintentos antes de intentar
           await doc.ref.update({
             screenshotRetries: admin.firestore.FieldValue.increment(1),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: Timestamp.now(),
           });
 
           // Llamar a captureScreenshot
@@ -99,7 +101,7 @@ export const retryFailedScreenshots = onSchedule(
             auth: {
               uid: data.userId,
             },
-          } as any);
+          } as CallableRequest<CaptureScreenshotParams>);
 
           if (result.success) {
             logger.info(`Screenshot capturado exitosamente para bookmark ${bookmarkId}`);
@@ -108,11 +110,15 @@ export const retryFailedScreenshots = onSchedule(
             logger.warn(`Captura falló para bookmark ${bookmarkId}: ${result.error}`);
             failCount++;
           }
-        } catch (error: any) {
-          logger.error(`Error al reintentar captura para bookmark ${bookmarkId}`, {
-            error: error.message,
-            stack: error.stack,
-          });
+        } catch (error: unknown) {
+          const err = error as { message?: string; stack?: string };
+          logger.error(
+            `Error al reintentar captura para bookmark ${bookmarkId}`,
+            {
+              error: err.message,
+              stack: err.stack,
+            }
+          );
           failCount++;
         }
 
@@ -127,10 +133,11 @@ export const retryFailedScreenshots = onSchedule(
         failed: failCount,
         skipped: skippedCount,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string; stack?: string };
       logger.error("Error en retryFailedScreenshots", {
-        error: error.message,
-        stack: error.stack,
+        error: err.message,
+        stack: err.stack,
       });
       throw error;
     }

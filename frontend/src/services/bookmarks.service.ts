@@ -80,12 +80,12 @@ export interface SuccessResponse {
  */
 export class BookmarkServiceError extends Error {
   code?: string;
-  details?: any;
+  details?: unknown;
 
   constructor(
     message: string,
     code?: string,
-    details?: any
+    details?: unknown
   ) {
     super(message);
     this.name = 'BookmarkServiceError';
@@ -124,11 +124,12 @@ export async function create(data: BookmarkData): Promise<Bookmark> {
 
     const result: HttpsCallableResult<Bookmark> = await createBookmark(data);
     return result.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; details?: unknown };
     throw new BookmarkServiceError(
-      error.message || 'Failed to create bookmark',
-      error.code,
-      error.details
+      err.message || 'Failed to create bookmark',
+      err.code,
+      err.details
     );
   }
 }
@@ -174,11 +175,12 @@ export async function getAll(
     const result: HttpsCallableResult<GetBookmarksResponse> =
       await getBookmarks(filters);
     return result.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; details?: unknown };
     throw new BookmarkServiceError(
-      error.message || 'Failed to get bookmarks',
-      error.code,
-      error.details
+      err.message || 'Failed to get bookmarks',
+      err.code,
+      err.details
     );
   }
 }
@@ -218,11 +220,12 @@ export async function update(
       ...data,
     });
     return result.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; details?: unknown };
     throw new BookmarkServiceError(
-      error.message || 'Failed to update bookmark',
-      error.code,
-      error.details
+      err.message || 'Failed to update bookmark',
+      err.code,
+      err.details
     );
   }
 }
@@ -255,11 +258,12 @@ export async function deleteBookmark(bookmarkId: string): Promise<SuccessRespons
       bookmarkId,
     });
     return result.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; details?: unknown };
     throw new BookmarkServiceError(
-      error.message || 'Failed to delete bookmark',
-      error.code,
-      error.details
+      err.message || 'Failed to delete bookmark',
+      err.code,
+      err.details
     );
   }
 }
@@ -292,11 +296,12 @@ export async function getTags(): Promise<Tag[]> {
     const result: HttpsCallableResult<{ tags: Tag[]; total: number }> =
       await getTagsFn();
     return result.data.tags;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; details?: unknown };
     throw new BookmarkServiceError(
-      error.message || 'Failed to get tags',
-      error.code,
-      error.details
+      err.message || 'Failed to get tags',
+      err.code,
+      err.details
     );
   }
 }
@@ -336,11 +341,12 @@ export async function getPageMetadata(url: string): Promise<PageMetadata> {
 
     const result: HttpsCallableResult<PageMetadata> = await getMetadata({ url });
     return result.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; details?: unknown };
     throw new BookmarkServiceError(
-      error.message || 'Failed to fetch page metadata',
-      error.code,
-      error.details
+      err.message || 'Failed to fetch page metadata',
+      err.code,
+      err.details
     );
   }
 }

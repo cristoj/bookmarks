@@ -8,7 +8,7 @@ import {
   type User as FirebaseUser,
   type UserCredential,
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@services/firebase';
 import type { User } from '@types';
 
@@ -62,20 +62,22 @@ export const authService = {
       });
 
       // Create user document in Firestore
+      const now = Timestamp.now();
       const userData: Omit<User, 'uid'> = {
         email: user.email!,
         displayName,
         photoURL: null,
-        createdAt: serverTimestamp() as any,
-        updatedAt: serverTimestamp() as any,
+        createdAt: now,
+        updatedAt: now,
       };
 
       await setDoc(doc(db, 'users', user.uid), userData);
 
       return user;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
       console.error('Registration error:', error);
-      throw new Error(this.getErrorMessage(error.code));
+      throw new Error(this.getErrorMessage(err.code || 'unknown'));
     }
   },
 
@@ -105,9 +107,10 @@ export const authService = {
         password
       );
       return userCredential.user;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
       console.error('Login error:', error);
-      throw new Error(this.getErrorMessage(error.code));
+      throw new Error(this.getErrorMessage(err.code || 'unknown'));
     }
   },
 
@@ -130,9 +133,10 @@ export const authService = {
   async logout(): Promise<void> {
     try {
       await signOut(auth);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
       console.error('Logout error:', error);
-      throw new Error(this.getErrorMessage(error.code));
+      throw new Error(this.getErrorMessage(err.code || 'unknown'));
     }
   },
 
@@ -156,9 +160,10 @@ export const authService = {
   async forgotPassword(email: string): Promise<void> {
     try {
       await sendPasswordResetEmail(auth, email);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
       console.error('Password reset error:', error);
-      throw new Error(this.getErrorMessage(error.code));
+      throw new Error(this.getErrorMessage(err.code || 'unknown'));
     }
   },
 

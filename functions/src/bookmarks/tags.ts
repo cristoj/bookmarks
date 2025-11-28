@@ -55,6 +55,7 @@ export const getTags = onCall<void, Promise<GetTagsResponse>>(
   {
     timeoutSeconds: 60,
     memory: "256MiB",
+    cors: "https://bookmarks-cristoj.web.app",
   },
   async (request) => {
     // Verificar autenticación

@@ -50,6 +50,7 @@ export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkRespons
   {
     timeoutSeconds: 60,
     memory: "256MiB",
+    cors: "https://bookmarks-cristoj.web.app",
   },
   async (request) => {
     // Inicializar Firebase Admin si no está inicializado

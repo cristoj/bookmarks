@@ -62,6 +62,7 @@ export const updateBookmark = onCall<
   {
     timeoutSeconds: 60,
     memory: "256MiB",
+    cors: "https://bookmarks-cristoj.web.app",
   },
   async (request) => {
     // Verificar autenticación

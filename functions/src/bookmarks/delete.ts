@@ -51,6 +51,7 @@ export const deleteBookmark = onCall<DeleteBookmarkParams, Promise<DeleteBookmar
   {
     timeoutSeconds: 60,
     memory: "256MiB",
+    cors: "https://bookmarks-cristoj.web.app",
   },
   async (request) => {
     // Verificar autenticación

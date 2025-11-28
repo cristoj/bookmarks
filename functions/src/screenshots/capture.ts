@@ -61,6 +61,7 @@ export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<Capture
   {
     timeoutSeconds: 120,
     memory: "2GiB", // Recomendado 2GB mínimo para Puppeteer
+    cors: "https://bookmarks-cristoj.web.app",
   },
   async (request) => {
     // Verificar autenticación

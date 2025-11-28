@@ -71,7 +71,7 @@ describe("updateBookmark", () => {
       {
         data: {
           bookmarkId: testBookmarkId,
-          title: "Updated description",
+          description: "Updated description",
         },
         auth: {
           uid: testUserId,
@@ -90,7 +90,7 @@ describe("updateBookmark", () => {
     const wrapped = test.wrap(updateBookmark);
     const result = await wrapped(
       {
-        ðata: {
+        data: {
           bookmarkId: testBookmarkId,
           tags: ["newtag1", "newtag2", "newtag3"],
         },
@@ -111,13 +111,12 @@ describe("updateBookmark", () => {
     const wrapped = test.wrap(updateBookmark);
     const result = await wrapped(
       {
-        ðata: {
+        data: {
           bookmarkId: testBookmarkId,
           title: "Multi Update Title",
           description: "Multi Update Description",
           tags: ["multi1", "multi2"],
         },
-
         auth: {
           uid: testUserId,
         },
@@ -225,11 +224,10 @@ describe("updateBookmark", () => {
     try {
       await wrapped(
         {
-          ðata: {
+          data: {
             bookmarkId: testBookmarkId,
             tags: tooManyTags,
           },
-
           auth: {
             uid: testUserId,
           },

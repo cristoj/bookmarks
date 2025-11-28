@@ -1,6 +1,9 @@
 import * as admin from "firebase-admin";
 import {logger} from "firebase-functions/v2";
-import puppeteer, {Browser, Page} from "puppeteer";
+// import puppeteer, {Browser, Page} from "puppeteer";
+import puppeteer from "puppeteer-core";
+import {Browser, LaunchOptions, Page} from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import {v4 as uuidv4} from "uuid";
 import {Timestamp} from "firebase-admin/firestore";
 
@@ -43,8 +46,11 @@ export async function internalCaptureLogic({
 
     // --- Lógica de Puppeteer ---
     // Configuración optimizada para Cloud Functions
+    /*
     browser = await puppeteer.launch({
       headless: true,
+      // Usar Chrome preinstalado en Cloud Functions
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/google-chrome-stable",
       args: [
         // Seguridad y permisos (requerido para Cloud Functions)
         "--no-sandbox",
@@ -84,7 +90,15 @@ export async function internalCaptureLogic({
         "--mute-audio",
       ],
     });
-
+    */
+    const executablePath = await chromium.executablePath();
+    const launchOptions: LaunchOptions = {
+      args: chromium.args,
+      executablePath: executablePath,
+      headless: true,
+      defaultViewport: {width: 1920, height: 900},
+    };
+    browser = await puppeteer.launch(launchOptions);
     const page: Page = await browser.newPage();
 
     // Configurar viewport

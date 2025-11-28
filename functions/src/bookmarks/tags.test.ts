@@ -163,7 +163,8 @@ describe("getTags", () => {
 
     const wrapped = test.wrap(getTags);
     const result = await wrapped({
-      data: undefined, uth: {
+      data: undefined,
+      auth: {
         uid: testUserId,
       },
     } as any);

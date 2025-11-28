@@ -8,6 +8,7 @@ import {verifyAuth} from "../utils/auth";
 import {validateBookmarkData, BookmarkData} from "../utils/validation";
 import {updateTagCounts} from "./helpers";
 import {Timestamp} from "firebase-admin/firestore";
+import {ALLOWED_ORIGINS} from "../utils/cors";
 
 /**
  * Interface para la respuesta de createBookmark
@@ -48,16 +49,12 @@ export interface CreateBookmarkResponse {
  */
 export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkResponse>>(
   {
+    region: "us-central1",
+    cors: ALLOWED_ORIGINS,
     timeoutSeconds: 60,
     memory: "256MiB",
-    cors: "https://bookmarks-cristoj.web.app",
   },
   async (request) => {
-    // Inicializar Firebase Admin si no está inicializado
-    if (!admin.apps.length) {
-      admin.initializeApp();
-    }
-
     // Verificar autenticación
     const userId = verifyAuth(request);
 

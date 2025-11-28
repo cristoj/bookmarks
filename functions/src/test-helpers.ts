@@ -18,6 +18,7 @@ process.env.GCLOUD_PROJECT = "test-project";
 if (!admin.apps.length) {
   admin.initializeApp({
     projectId: "test-project",
+    storageBucket: "test-project.appspot.com",
   });
 }
 

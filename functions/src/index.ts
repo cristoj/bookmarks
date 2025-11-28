@@ -10,10 +10,9 @@ import {setGlobalOptions} from "firebase-functions/v2";
 // Inicializar Firebase Admin
 admin.initializeApp();
 
-// Configuración global para control de costos
+// Configuración global para control de costos (sin region para permitir triggers regionales)
 setGlobalOptions({
   maxInstances: 10,
-  region: "us-central1",
 });
 
 // Exportar funciones de bookmarks

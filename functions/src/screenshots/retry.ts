@@ -34,6 +34,7 @@ import {Timestamp} from "firebase-admin/firestore";
  */
 export const retryFailedScreenshots = onSchedule(
   {
+    region: "us-central1",
     schedule: "every 24 hours",
     timeoutSeconds: 540, // 9 minutos
     memory: "512MiB",

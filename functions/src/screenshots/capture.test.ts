@@ -83,7 +83,10 @@ describe("captureScreenshot", () => {
 
     expect(result.success).to.be.true;
     expect(result.screenshotUrl).to.be.a("string");
-    expect(result.screenshotUrl).to.include("storage.googleapis.com");
+    // En emulador usa localhost, en producción storage.googleapis.com
+    expect(result.screenshotUrl).to.satisfy((url: string) =>
+      url.includes("storage.googleapis.com") || url.includes("127.0.0.1:9199")
+    );
 
     // Verificar actualización en Firestore
     const bookmark = await db.collection("bookmarks").doc(testBookmarkId).get();

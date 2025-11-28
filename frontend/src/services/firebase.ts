@@ -93,7 +93,7 @@ export const storage: FirebaseStorage = getStorage(app);
  * const result = await createBookmark({ url: 'https://example.com', title: 'Example' });
  * ```
  */
-export const functions: Functions = getFunctions(app);
+export const functions: Functions = getFunctions(app, 'us-central1');
 
 /**
  * Connect to Firebase Emulators for local development

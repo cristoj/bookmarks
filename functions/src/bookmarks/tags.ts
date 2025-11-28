@@ -5,6 +5,7 @@
 import * as admin from "firebase-admin";
 import {onCall} from "firebase-functions/v2/https";
 import {verifyAuth} from "../utils/auth";
+import {ALLOWED_ORIGINS} from "../utils/cors";
 
 /**
  * Interface para un tag
@@ -53,9 +54,10 @@ export interface GetTagsResponse {
  */
 export const getTags = onCall<void, Promise<GetTagsResponse>>(
   {
+    region: "us-central1",
+    cors: ALLOWED_ORIGINS,
     timeoutSeconds: 60,
     memory: "256MiB",
-    cors: "https://bookmarks-cristoj.web.app",
   },
   async (request) => {
     // Verificar autenticación

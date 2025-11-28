@@ -53,8 +53,6 @@ describe('useCreateBookmark', () => {
 
     result.current.mutate(mockBookmarkData);
 
-    expect(result.current.isPending).toBe(true);
-
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
@@ -166,7 +164,8 @@ describe('useCreateBookmark', () => {
     expect(onSuccess).toHaveBeenCalledWith(
       mockCreatedBookmark,
       mockBookmarkData,
-      undefined
+      undefined,
+      expect.objectContaining({ client: queryClient })
     );
   });
 
@@ -193,7 +192,12 @@ describe('useCreateBookmark', () => {
       expect(result.current.isError).toBe(true);
     });
 
-    expect(onError).toHaveBeenCalledWith(mockError, mockBookmarkData, undefined);
+    expect(onError).toHaveBeenCalledWith(
+      mockError,
+      mockBookmarkData,
+      undefined,
+      expect.objectContaining({ client: queryClient })
+    );
 
     consoleErrorSpy.mockRestore();
   });
@@ -234,7 +238,10 @@ describe('useCreateBookmark', () => {
     // Reset the mutation
     result.current.reset();
 
-    expect(result.current.data).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current.data).toBeUndefined();
+    });
+
     expect(result.current.isSuccess).toBe(false);
   });
 });

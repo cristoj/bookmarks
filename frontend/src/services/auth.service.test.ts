@@ -9,6 +9,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { setDoc } from 'firebase/firestore';
+import { auth as mockedAuth } from './firebase';
 
 // Mock Firebase modules
 vi.mock('firebase/auth');
@@ -179,23 +180,28 @@ describe('AuthService', () => {
   describe('getIdToken', () => {
     it('returns ID token for current user', async () => {
       const mockGetIdToken = vi.fn().mockResolvedValue('mock-token');
-      const mockAuth = {
-        currentUser: {
-          getIdToken: mockGetIdToken,
-        },
-      };
+      const mockUser = {
+        getIdToken: mockGetIdToken,
+      } as any;
 
-      // Override the mock for this test
-      vi.mocked(authService.getCurrentUser).mockReturnValue(mockAuth.currentUser as any);
+      // Mock auth.currentUser
+      Object.defineProperty(mockedAuth, 'currentUser', {
+        get: () => mockUser,
+        configurable: true,
+      });
 
-      const token = await mockAuth.currentUser.getIdToken();
+      const token = await authService.getIdToken();
 
       expect(token).toBe('mock-token');
       expect(mockGetIdToken).toHaveBeenCalled();
     });
 
     it('throws error when no user is logged in', async () => {
-      vi.mocked(authService.getCurrentUser).mockReturnValue(null);
+      // Mock auth.currentUser to return null
+      Object.defineProperty(mockedAuth, 'currentUser', {
+        get: () => null,
+        configurable: true,
+      });
 
       await expect(authService.getIdToken()).rejects.toThrow('No user logged in');
     });

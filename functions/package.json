@@ -19,15 +19,17 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@sparticuz/chromium": "^141.0.0",
     "cheerio": "^1.1.2",
     "firebase-admin": "^12.6.0",
-    "firebase-functions": "^6.0.1",
-    "puppeteer": "^24.31.0",
+    "firebase-functions": "^6.6.0",
+    "puppeteer-core": "^24.31.0",
     "undici": "^7.16.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.11",
+    "@types/cors": "^2.8.19",
     "@types/mocha": "^10.0.6",
     "@types/sinon": "^21.0.0",
     "@types/uuid": "^10.0.0",

@@ -9,6 +9,7 @@ import {internalCaptureLogic} from "./capture-logic";
 export const onBookmarkCreated = onDocumentCreated(
   {
     document: "bookmarks/{bookmarkId}",
+    region: "europe-southwest1", // DEBE estar en la misma región que Firestore
     // Configuración ALTA necesaria para Puppeteer (recomendado 2GB mínimo)
     timeoutSeconds: 120,
     memory: "2GiB",

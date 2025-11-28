@@ -11,11 +11,13 @@
 import * as admin from "firebase-admin";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {logger} from "firebase-functions/v2";
-import puppeteer, {Browser, Page} from "puppeteer";
+import puppeteer, {Browser, LaunchOptions, Page} from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import {v4 as uuidv4} from "uuid";
 import {verifyAuth} from "../utils/auth";
 import {validateUrl} from "../utils/validation";
 import {Timestamp} from "firebase-admin/firestore";
+import {ALLOWED_ORIGINS} from "../utils/cors";
 
 /**
  * Interface para los parámetros de captureScreenshot
@@ -59,9 +61,10 @@ export interface CaptureScreenshotResponse {
  */
 export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<CaptureScreenshotResponse>>(
   {
+    region: "us-central1",
+    cors: ALLOWED_ORIGINS,
     timeoutSeconds: 120,
     memory: "2GiB", // Recomendado 2GB mínimo para Puppeteer
-    cors: "https://bookmarks-cristoj.web.app",
   },
   async (request) => {
     // Verificar autenticación
@@ -111,7 +114,9 @@ export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<Capture
       });
 
       // Configuración optimizada para Cloud Functions
+      /*
       browser = await puppeteer.launch({
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/google-chrome-stable",
         headless: true,
         args: [
           // Seguridad y permisos (requerido para Cloud Functions)
@@ -152,7 +157,15 @@ export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<Capture
           "--mute-audio",
         ],
       });
-
+      */
+      const executablePath = await chromium.executablePath();
+      const launchOptions: LaunchOptions = {
+        args: chromium.args,
+        executablePath: executablePath,
+        headless: true,
+        defaultViewport: {width: 1920, height: 900},
+      };
+      browser = await puppeteer.launch(launchOptions);
       const page: Page = await browser.newPage();
 
       // Configurar viewport
@@ -216,7 +229,11 @@ export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<Capture
 
       // Generar URL: emulador local vs producción
       let screenshotUrl: string;
-      const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
+      // Detectar si estamos en emulador (múltiples formas de detección)
+      const isEmulator =
+        process.env.FUNCTIONS_EMULATOR === "true" ||
+        process.env.FIRESTORE_EMULATOR_HOST !== undefined ||
+        process.env.FIREBASE_STORAGE_EMULATOR_HOST !== undefined;
 
       if (isEmulator) {
         // En emulador, usar URL del emulador local de Storage
@@ -274,7 +291,7 @@ export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<Capture
           updatedAt: Timestamp.now(),
         });
       } catch (updateError: unknown) {
-        const updateErr = updateError as { message?: string };
+        const updateErr = updateError as {message?: string};
         logger.error("Error al actualizar estado de error en Firestore", {
           error: updateErr.message,
         });
@@ -292,7 +309,7 @@ export const captureScreenshot = onCall<CaptureScreenshotParams, Promise<Capture
           await browser.close();
           logger.info("Browser cerrado correctamente");
         } catch (closeError: unknown) {
-          const closeErr = closeError as { message?: string };
+          const closeErr = closeError as {message?: string};
           logger.error("Error al cerrar browser", {
             error: closeErr.message,
           });

@@ -4,17 +4,13 @@
 
 import * as admin from "firebase-admin";
 import {onCall, HttpsError} from "firebase-functions/v2/https";
+import {logger} from "firebase-functions/v2";
 import {verifyAuth} from "../utils/auth";
 import {updateTagCounts} from "./helpers";
 import {Timestamp} from "firebase-admin/firestore";
 import {ALLOWED_ORIGINS} from "../utils/cors";
 
 /**
-
-// Inicializar Firebase Admin si no está inicializado
-if (!admin.apps.length) {
-  admin.initializeApp();
-}
  * Interface para los parámetros de updateBookmark
  */
 export interface UpdateBookmarkParams {
@@ -23,6 +19,7 @@ export interface UpdateBookmarkParams {
   description?: string;
   tags?: string[];
   folderId?: string | null;
+  screenshotUrl?: string | null;
 }
 
 /**
@@ -70,7 +67,15 @@ export const updateBookmark = onCall<
     // Verificar autenticación
     const userId = verifyAuth(request);
 
-    const {bookmarkId, title, description, tags, folderId} = request.data;
+    const {bookmarkId, title, description, tags, folderId, screenshotUrl} = request.data;
+
+    // Log para debug
+    logger.info("updateBookmark - Datos recibidos", {
+      bookmarkId,
+      hasScreenshotUrl: screenshotUrl !== undefined,
+      screenshotUrl,
+      allData: request.data,
+    });
 
     // Validar que se proporcione el bookmarkId
     if (!bookmarkId || typeof bookmarkId !== "string") {
@@ -108,6 +113,8 @@ export const updateBookmark = onCall<
       description?: string;
       tags?: string[];
       folderId?: string | null;
+      screenshotUrl?: string | null;
+      screenshotStatus?: string;
     } = {
       updatedAt: Timestamp.now(),
     };
@@ -202,8 +209,37 @@ export const updateBookmark = onCall<
       updateData.folderId = folderId;
     }
 
+    // Manejar actualización de screenshot
+    if (screenshotUrl !== undefined) {
+      if (screenshotUrl !== null && typeof screenshotUrl !== "string") {
+        throw new HttpsError(
+          "invalid-argument",
+          "La URL del screenshot debe ser una cadena de texto o null"
+        );
+      }
+      if (screenshotUrl !== null) {
+        // Validar que sea una URL válida de Firebase Storage
+        if (!screenshotUrl.includes("firebasestorage.googleapis.com")) {
+          throw new HttpsError(
+            "invalid-argument",
+            "La URL del screenshot debe ser de Firebase Storage"
+          );
+        }
+        updateData.screenshotUrl = screenshotUrl;
+        updateData.screenshotStatus = "completed";
+      } else {
+        updateData.screenshotUrl = null;
+        updateData.screenshotStatus = "pending";
+      }
+    }
+
     // Actualizar el documento
     await bookmarkRef.update(updateData);
+
+    logger.info("updateBookmark - Documento actualizado", {
+      bookmarkId,
+      updateData,
+    });
 
     // Actualizar conteo de tags si cambiaron
     if (tags !== undefined) {

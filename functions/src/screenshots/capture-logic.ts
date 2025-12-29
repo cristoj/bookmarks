@@ -4,6 +4,7 @@ import {logger} from "firebase-functions/v2";
 import puppeteer from "puppeteer-core";
 import {Browser, LaunchOptions, Page} from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+import sharp from "sharp";
 import {v4 as uuidv4} from "uuid";
 import {Timestamp} from "firebase-admin/firestore";
 
@@ -14,6 +15,13 @@ export interface CaptureLogicParams {
   userId: string;
 }
 
+// Interface para el resultado de la captura
+export interface CaptureLogicResult {
+  success: boolean;
+  screenshotUrl?: string;
+  error?: string;
+}
+
 /**
  * Lógica pura para capturar screenshot y actualizar Firestore/Storage.
  * NO es una Cloud Function (no usa onCall ni onRequest).
@@ -22,7 +30,7 @@ export async function internalCaptureLogic({
   bookmarkId,
   url,
   userId,
-}: CaptureLogicParams): Promise<void> {
+}: CaptureLogicParams): Promise<CaptureLogicResult> {
   // Inicializar Firestore y Storage
   const db = admin.firestore();
   const bookmarkRef = db.collection("bookmarks").doc(bookmarkId);
@@ -96,12 +104,12 @@ export async function internalCaptureLogic({
       args: chromium.args,
       executablePath: executablePath,
       headless: true,
-      defaultViewport: {width: 1920, height: 900},
+      defaultViewport: {width: 1280, height: 720},
     };
     browser = await puppeteer.launch(launchOptions);
     const page: Page = await browser.newPage();
 
-    // Configurar viewport
+    // Configurar viewport desktop para capturar diseño completo
     await page.setViewport({
       width: 1280,
       height: 720,
@@ -124,23 +132,32 @@ export async function internalCaptureLogic({
     // Esperar 2 segundos para contenido dinámico
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Capturar screenshot
-    const screenshot = await page.screenshot({
+    // Capturar screenshot en PNG (máxima calidad)
+    const screenshotBuffer = await page.screenshot({
       type: "png",
       fullPage: false,
     });
 
     await page.close();
 
+    // Redimensionar a 350px de ancho y comprimir a JPEG
+    const screenshot = await sharp(screenshotBuffer)
+      .resize(350, null, {
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .jpeg({quality: 80})
+      .toBuffer();
+
     // --- Lógica de Storage ---
-    const filename = `${uuidv4()}.png`;
+    const filename = `${uuidv4()}.jpg`;
     const storagePath = `screenshots/${userId}/${filename}`;
     const bucket = admin.storage().bucket();
     const file = bucket.file(storagePath);
 
     await file.save(screenshot, {
       metadata: {
-        contentType: "image/png",
+        contentType: "image/jpeg",
         metadata: {
           bookmarkId,
           capturedAt: new Date().toISOString(),
@@ -149,7 +166,10 @@ export async function internalCaptureLogic({
       },
     });
 
-    // Generar URL: emulador local vs producción
+    // Hacer el archivo público para que funcione con URLs sin token
+    await file.makePublic();
+
+    // Generar URL pública: emulador local vs producción
     let screenshotUrl: string;
     const isEmulator = process.env.FUNCTIONS_EMULATOR === "true";
 
@@ -160,13 +180,11 @@ export async function internalCaptureLogic({
       screenshotUrl = `http://127.0.0.1:9199/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
       logger.info("[Logic] Usando URL del emulador local", {screenshotUrl});
     } else {
-      // En producción, usar signed URL
-      const [signedUrl] = await file.getSignedUrl({
-        action: "read",
-        expires: Date.now() + 10 * 365 * 24 * 60 * 60 * 1000, // 10 años
-      });
-      screenshotUrl = signedUrl;
-      logger.info("[Logic] Usando signed URL para producción");
+      // En producción, usar URL pública (las reglas de Storage permiten lectura pública)
+      // Formato: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{encodedPath}?alt=media
+      const encodedPath = encodeURIComponent(storagePath);
+      screenshotUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
+      logger.info("[Logic] Usando URL pública para producción", {screenshotUrl});
     }
 
     // --- Actualización Final ---
@@ -179,6 +197,11 @@ export async function internalCaptureLogic({
     });
 
     logger.info(`[Logic] Captura exitosa para bookmark ${bookmarkId}`);
+
+    return {
+      success: true,
+      screenshotUrl,
+    };
   } catch (error: unknown) {
     const err = error as { message?: string; stack?: string };
     logger.error(`[Logic] Error al capturar screenshot para ${bookmarkId}`, {
@@ -192,6 +215,11 @@ export async function internalCaptureLogic({
       screenshotError: err.message || "Error desconocido en la lógica de captura",
       updatedAt: Timestamp.now(),
     });
+
+    return {
+      success: false,
+      error: err.message || "Error desconocido en la lógica de captura",
+    };
   } finally {
     if (browser) {
       await browser.close();

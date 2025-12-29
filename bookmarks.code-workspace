@@ -1,0 +1,24 @@
+{
+  "folders": [
+    {
+      "name": "Bookmarks App",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "tailwindCSS.experimental.configFile": "${workspaceFolder}/frontend/tailwind.config.js",
+    "tailwindCSS.includeLanguages": {
+      "typescript": "javascript",
+      "typescriptreact": "javascript",
+      "css": "css"
+    },
+    "tailwindCSS.emmetCompletions": true,
+    "tailwindCSS.validate": true,
+    "editor.quickSuggestions": {
+      "strings": "on",
+      "other": "on"
+    },
+    "css.validate": false,
+    "css.lint.unknownAtRules": "ignore"
+  }
+}

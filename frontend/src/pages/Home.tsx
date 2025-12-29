@@ -149,7 +149,7 @@ export function Home(): JSX.Element {
   /**
    * Handle bookmark form submission (create or edit)
    */
-  const handleSaveBookmark = (data: BookmarkData) => {
+  const handleSaveBookmark = (data: BookmarkData, screenshotFile?: File | null) => {
     if (modalState.mode === 'create') {
       createBookmarkMutation.mutate(data, {
         onSuccess: () => {
@@ -164,6 +164,7 @@ export function Home(): JSX.Element {
         {
           bookmarkId: modalState.bookmark.id,
           data,
+          screenshotFile: screenshotFile ?? undefined,
         },
         {
           onSuccess: () => {

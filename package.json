@@ -1,0 +1,21 @@
+{
+  "name": "bookmarks-root",
+  "version": "1.0.0",
+  "description": "Personal bookmarks management application",
+  "private": true,
+  "scripts": {
+    "import-bookmarks": "ts-node scripts/import-bookmarks.ts",
+    "cleanup-bookmarks": "ts-node scripts/cleanup-bookmarks.ts",
+    "migrate-screenshot-urls": "ts-node scripts/migrate-screenshot-urls.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/uuid": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "uuid": "^13.0.0"
+  }
+}

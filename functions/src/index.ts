@@ -27,3 +27,6 @@ export {getPageMetadata} from "./bookmarks/metadata";
 export {captureScreenshot} from "./screenshots/capture";
 export {retryFailedScreenshots} from "./screenshots/retry";
 export {onBookmarkCreated} from "./screenshots/trigger";
+
+// Exportar funciones de mantenimiento
+export {fixScreenshotUrls} from "./maintenance/fix-urls";

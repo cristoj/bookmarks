@@ -8,6 +8,21 @@ import {verifyAuth} from "../utils/auth";
 import {ALLOWED_ORIGINS} from "../utils/cors";
 
 /**
+ * Genera una URL pública para un screenshot desde su storage path
+ * @param screenshotPath - Path del archivo en Storage (ej: screenshots/userId/file.jpg)
+ * @returns URL pública sin token (las reglas de Storage permiten lectura pública)
+ */
+function generatePublicScreenshotUrl(screenshotPath: string | null | undefined): string | null {
+  if (!screenshotPath) {
+    return null;
+  }
+
+  const bucket = admin.storage().bucket();
+  const encodedPath = encodeURIComponent(screenshotPath);
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media`;
+}
+
+/**
  * Interface para los parámetros de getBookmarks
 
 // Inicializar Firebase Admin si no está inicializado
@@ -143,6 +158,11 @@ export const getBookmarks = onCall<GetBookmarksParams, Promise<GetBookmarksRespo
     // Mapear documentos a BookmarkItem
     let bookmarks: BookmarkItem[] = docs.map((doc) => {
       const data = doc.data();
+
+      // Usar screenshotUrl directamente si existe (ya incluye token de getDownloadURL),
+      // sino generar URL pública desde screenshotPath
+      const screenshotUrl = data.screenshotUrl || generatePublicScreenshotUrl(data.screenshotPath);
+
       return {
         id: doc.id,
         url: data.url,
@@ -150,7 +170,7 @@ export const getBookmarks = onCall<GetBookmarksParams, Promise<GetBookmarksRespo
         description: data.description || "",
         tags: data.tags || [],
         folderId: data.folderId || null,
-        screenshotUrl: data.screenshotUrl || null,
+        screenshotUrl,
         screenshotStatus: data.screenshotStatus || "pending",
         createdAt: data.createdAt?.toDate().toISOString() || "",
         updatedAt: data.updatedAt?.toDate().toISOString() || "",

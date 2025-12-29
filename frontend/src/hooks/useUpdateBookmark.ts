@@ -4,10 +4,12 @@
  * Custom React Query hook for updating bookmarks.
  * Uses useMutation to handle the update operation and automatically
  * invalidates the bookmarks query on success.
+ * Supports optional screenshot file upload.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import bookmarksService, { type BookmarkData, type SuccessResponse } from '@services/bookmarks.service';
+import storageService from '@services/storage.service';
 
 /**
  * Parameters for updating a bookmark
@@ -15,6 +17,7 @@ import bookmarksService, { type BookmarkData, type SuccessResponse } from '@serv
 export interface UpdateBookmarkParams {
   bookmarkId: string;
   data: Partial<Omit<BookmarkData, 'url'>>;
+  screenshotFile?: File | null;
 }
 
 /**
@@ -60,12 +63,30 @@ export function useUpdateBookmark() {
   const queryClient = useQueryClient();
 
   return useMutation<SuccessResponse, Error, UpdateBookmarkParams>({
-    mutationFn: async ({ bookmarkId, data }: UpdateBookmarkParams) => {
-      return await bookmarksService.update(bookmarkId, data);
+    mutationFn: async ({ bookmarkId, data, screenshotFile }: UpdateBookmarkParams) => {
+      let updatedData = { ...data };
+
+      // If a screenshot file is provided, upload it first
+      if (screenshotFile) {
+        try {
+          const screenshotUrl = await storageService.uploadScreenshot(
+            screenshotFile,
+            bookmarkId
+          );
+          updatedData.screenshotUrl = screenshotUrl;
+        } catch (error) {
+          console.error('Failed to upload screenshot:', error);
+          throw new Error('No se pudo subir la imagen. Por favor, intenta de nuevo.');
+        }
+      }
+
+      return await bookmarksService.update(bookmarkId, updatedData);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate and refetch bookmarks query
-      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      // Force refetch immediately
+      await queryClient.refetchQueries({ queryKey: ['bookmarks'] });
     },
     onError: (error: Error) => {
       // Log error for debugging

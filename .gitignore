@@ -101,3 +101,11 @@ Thumbs.db
 # Local development
 *.local
 docs/
+
+# Firebase Admin SDK credentials
+firebase-credentials.json
+*service-account*.json
+
+# Import scripts
+scripts/import-log.json
+bookmarks-cristoj-firebase-adminsdk-fbsvc-92d5aee468.json

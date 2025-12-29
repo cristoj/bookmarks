@@ -238,4 +238,72 @@ describe("updateBookmark", () => {
       expect(error.code).to.equal("invalid-argument");
     }
   });
+
+  it("debe actualizar la URL del screenshot", async () => {
+    const wrapped = test.wrap(updateBookmark);
+    const newScreenshotUrl = "https://firebasestorage.googleapis.com/v0/b/test-bucket/o/screenshots%2Ftest-user%2Fimage.jpg?alt=media";
+
+    const result = await wrapped(
+      {
+        data: {
+          bookmarkId: testBookmarkId,
+          screenshotUrl: newScreenshotUrl,
+        },
+        auth: {
+          uid: testUserId,
+        },
+      } as any
+    );
+
+    expect(result.success).to.be.true;
+
+    // Verificar actualización
+    const doc = await db.collection("bookmarks").doc(testBookmarkId).get();
+    expect(doc.data()?.screenshotUrl).to.equal(newScreenshotUrl);
+    expect(doc.data()?.screenshotStatus).to.equal("completed");
+  });
+
+  it("debe rechazar URL de screenshot que no es de Firebase Storage", async () => {
+    const wrapped = test.wrap(updateBookmark);
+
+    try {
+      await wrapped(
+        {
+          data: {
+            bookmarkId: testBookmarkId,
+            screenshotUrl: "https://example.com/image.jpg",
+          },
+          auth: {
+            uid: testUserId,
+          },
+        } as any
+      );
+      expect.fail("Debería haber lanzado un error");
+    } catch (error: any) {
+      expect(error.code).to.equal("invalid-argument");
+    }
+  });
+
+  it("debe permitir establecer screenshotUrl en null", async () => {
+    const wrapped = test.wrap(updateBookmark);
+
+    const result = await wrapped(
+      {
+        data: {
+          bookmarkId: testBookmarkId,
+          screenshotUrl: null,
+        },
+        auth: {
+          uid: testUserId,
+        },
+      } as any
+    );
+
+    expect(result.success).to.be.true;
+
+    // Verificar actualización
+    const doc = await db.collection("bookmarks").doc(testBookmarkId).get();
+    expect(doc.data()?.screenshotUrl).to.be.null;
+    expect(doc.data()?.screenshotStatus).to.equal("pending");
+  });
 });

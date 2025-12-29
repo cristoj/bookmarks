@@ -71,6 +71,7 @@ export function BookmarkCard({
       <div className="relative aspect-video bg-black">
         {screenshotUrl ? (
           <img
+            key={screenshotUrl}
             src={screenshotUrl}
             alt={title}
             className="w-full h-full object-cover"

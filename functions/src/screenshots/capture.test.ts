@@ -292,9 +292,9 @@ describe("captureScreenshot", () => {
     const data = bookmark.data();
 
     // Verificar formato del path
-    expect(data?.screenshotPath).to.match(/^screenshots\/[\w-]+\/[\w-]+\.png$/);
+    expect(data?.screenshotPath).to.match(/^screenshots\/[\w-]+\/[\w-]+\.jpg$/);
     expect(data?.screenshotPath).to.include(`screenshots/${testUserId}/`);
-    expect(data?.screenshotPath).to.include(".png");
+    expect(data?.screenshotPath).to.include(".jpg");
   });
 
   it("debe incluir metadata en archivo de Storage", async function () {
@@ -323,7 +323,7 @@ describe("captureScreenshot", () => {
     const bucket = admin.storage().bucket();
     const [metadata] = await bucket.file(data?.screenshotPath).getMetadata();
 
-    expect(metadata.contentType).to.equal("image/png");
+    expect(metadata.contentType).to.equal("image/jpeg");
     expect(metadata.metadata?.bookmarkId).to.equal(testBookmarkId);
     expect(metadata.metadata?.userId).to.equal(testUserId);
     expect(metadata.metadata?.capturedAt).to.be.a("string");

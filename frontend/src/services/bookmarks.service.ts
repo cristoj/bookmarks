@@ -17,6 +17,7 @@ export interface BookmarkData {
   description?: string;
   tags?: string[];
   folderId?: string;
+  screenshotUrl?: string | null;
 }
 
 /**

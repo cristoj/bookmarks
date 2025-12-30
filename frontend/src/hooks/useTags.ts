@@ -1,19 +1,23 @@
 /**
  * useTags Hook
  *
- * Custom React Query hook for fetching tags.
- * Uses useQuery with caching to minimize API calls.
+ * Custom React Query hook for fetching tags with localStorage caching.
+ * Uses a hybrid approach: loads from localStorage instantly, then refreshes from API.
  */
 
 import { useQuery } from '@tanstack/react-query';
 import bookmarksService, { type Tag } from '@services/bookmarks.service';
+import { getTagsFromCache, saveTagsToCache } from '@/utils/tagsCache';
 
 /**
- * Hook for fetching tags
+ * Hook for fetching tags with localStorage cache
  *
- * Uses React Query's useQuery to fetch tags with 5 minutes of caching.
- * Tags are ordered by popularity (count desc) and limited to 100 results.
- * The cache helps reduce API calls since tags don't change frequently.
+ * Strategy:
+ * 1. Immediately returns tags from localStorage (instant load)
+ * 2. Fetches fresh tags from API in the background
+ * 3. Updates localStorage with fresh data
+ *
+ * This provides instant autocomplete suggestions while keeping data fresh.
  *
  * @returns Object with tags data, loading state, and error
  *
@@ -70,10 +74,23 @@ export function useTags() {
   return useQuery<Tag[], Error>({
     queryKey: ['tags'],
     queryFn: async () => {
-      return await bookmarksService.getTags();
+      // Fetch fresh tags from API
+      const tags = await bookmarksService.getTags();
+
+      // Update localStorage cache
+      saveTagsToCache(tags);
+
+      return tags;
     },
-    // Cache tags for 5 minutes (300000ms)
-    // Tags don't change very frequently, so we can cache them
-    staleTime: 5 * 60 * 1000,
+    // Use cache-first strategy
+    // If we have cached data, show it immediately while fetching fresh data
+    initialData: () => {
+      const cached = getTagsFromCache();
+      return cached || undefined;
+    },
+    // Always fetch fresh data on mount, but show cached data first
+    staleTime: 0,
+    // Keep cache for 5 minutes
+    gcTime: 5 * 60 * 1000,
   });
 }

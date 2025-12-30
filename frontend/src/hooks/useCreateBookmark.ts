@@ -8,6 +8,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import bookmarksService, { type BookmarkData, type Bookmark } from '@services/bookmarks.service';
+import { addTagsToCache } from '@/utils/tagsCache';
 
 /**
  * Hook for creating a new bookmark
@@ -52,9 +53,15 @@ export function useCreateBookmark() {
     mutationFn: async (data: BookmarkData) => {
       return await bookmarksService.create(data);
     },
-    onSuccess: () => {
-      // Invalidate and refetch bookmarks query
+    onSuccess: (bookmark) => {
+      // Add tags to localStorage cache
+      if (bookmark.tags && bookmark.tags.length > 0) {
+        addTagsToCache(bookmark.tags);
+      }
+
+      // Invalidate and refetch bookmarks and tags queries
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
     onError: (error: Error) => {
       // Log error for debugging

@@ -10,6 +10,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import bookmarksService, { type BookmarkData, type SuccessResponse } from '@services/bookmarks.service';
 import storageService from '@services/storage.service';
+import { addTagsToCache } from '@/utils/tagsCache';
 
 /**
  * Parameters for updating a bookmark
@@ -82,9 +83,15 @@ export function useUpdateBookmark() {
 
       return await bookmarksService.update(bookmarkId, updatedData);
     },
-    onSuccess: async () => {
-      // Invalidate and refetch bookmarks query
+    onSuccess: async (_data, variables) => {
+      // Add tags to localStorage cache if they were updated
+      if (variables.data.tags && variables.data.tags.length > 0) {
+        addTagsToCache(variables.data.tags);
+      }
+
+      // Invalidate and refetch bookmarks and tags queries
       await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      await queryClient.invalidateQueries({ queryKey: ['tags'] });
       // Force refetch immediately
       await queryClient.refetchQueries({ queryKey: ['bookmarks'] });
     },

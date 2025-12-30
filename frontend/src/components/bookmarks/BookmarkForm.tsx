@@ -3,9 +3,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Textarea } from '../common/Textarea';
-import { TagInput } from '../common/TagInput';
+import { TagAutocompleteInput } from '../common/TagAutocompleteInput';
 import { useDebounce } from '../../hooks/useDebounce';
 import { usePageMetadata } from '../../hooks/usePageMetadata';
+import { useTags } from '../../hooks/useTags';
 import type { Bookmark, BookmarkData } from '../../services/bookmarks.service';
 
 /**
@@ -85,6 +86,9 @@ export function BookmarkForm({
   isLoading = false,
 }: BookmarkFormProps): JSX.Element {
   const isEditMode = !!bookmark;
+
+  // Fetch available tags for autocomplete
+  const { data: availableTags = [] } = useTags();
 
   const {
     register,
@@ -318,15 +322,16 @@ export function BookmarkForm({
         name="tags"
         control={control}
         render={({ field }) => (
-          <TagInput
+          <TagAutocompleteInput
             label="Tags"
             value={field.value}
             onChange={field.onChange}
-            placeholder="Add tags (press Enter or comma)"
+            availableTags={availableTags}
+            placeholder="Type to search tags..."
             disabled={isLoading}
-            error={errors.tags?.message}
-            helperText="Press Enter or comma to add a tag. Click X to remove."
             maxTags={20}
+            minSearchChars={1}
+            debounceMs={300}
           />
         )}
       />

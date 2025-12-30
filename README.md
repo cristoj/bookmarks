@@ -79,8 +79,10 @@ A modern, full-stack bookmarks manager built with React and Firebase. Save, orga
 
 ### Run with Firebase Emulators (Recommended)
 
+The Firebase Emulator Suite allows you to develop and test locally without affecting production data.
+
 ```bash
-# Terminal 1 - Start Firebase emulators
+# Terminal 1 - Start all Firebase emulators
 firebase emulators:start
 
 # Terminal 2 - Start frontend dev server
@@ -88,52 +90,180 @@ cd frontend
 npm run dev
 ```
 
-Frontend: http://localhost:5173
-Emulator UI: http://localhost:4000
+**Access points:**
+- Frontend: http://localhost:5173
+- Emulator UI: http://localhost:4000
+- Functions: http://localhost:5001
+- Firestore: http://localhost:8080
+- Auth: http://localhost:9099
+- Storage: http://localhost:9199
 
-### Run Frontend Only
+**Run specific emulators:**
+```bash
+firebase emulators:start --only functions     # Functions only
+firebase emulators:start --only hosting       # Hosting only
+firebase emulators:start --only firestore     # Firestore only
+firebase emulators:start --only auth          # Auth only
+```
+
+### Frontend Development
 
 ```bash
 cd frontend
-npm run dev
+npm run dev                    # Start dev server at http://localhost:5173
+npm run build                  # Type check + build for production
+npm run preview               # Preview production build locally
+npm run lint                  # Run ESLint
 ```
 
-### Build Functions
+### Backend Development
 
 ```bash
 cd functions
-npm run build
+npm run serve                 # Build and start Firebase emulators
+npm run build                 # Compile TypeScript
+npm run build:watch          # Watch mode compilation
+npm run logs                 # View function logs (production)
+```
+
+**View function logs:**
+```bash
+firebase functions:log                      # All functions
+firebase functions:log --only createBookmark  # Specific function
 ```
 
 ## Testing
 
 ### Frontend Tests
+
+The frontend uses **Vitest** and **React Testing Library** for unit and integration tests.
+
 ```bash
 cd frontend
-npm test              # Watch mode
-npm run test:run      # Run once
-npm run test:coverage # With coverage
+
+# Run tests
+npm test                      # Run tests in watch mode
+npm run test:run             # Run tests once
+npm run test:ui              # Open Vitest UI (visual test runner)
+npm run test:coverage        # Generate coverage report
+
+# Linting
+npm run lint                  # Run ESLint
 ```
 
+**Test files:** `*.test.tsx` or `*.test.ts` in `src/` directory
+
 ### Backend Tests
+
+The backend uses **Mocha** and **Chai** for Cloud Functions testing.
+
 ```bash
 cd functions
-npm test
+
+# Run tests
+npm test                      # Run all function tests
+npm run test:watch           # Run tests in watch mode
+
+# Build
+npm run build                # Compile TypeScript
+npm run build:watch          # Watch mode compilation
 ```
+
+**Test files:** `*.test.ts` in `src/` directory
 
 ## Deployment
 
+### Prerequisites
+
+Make sure you're logged in to Firebase:
+```bash
+firebase login
+```
+
 ### Deploy Everything
+
+Deploy the complete application (hosting, functions, and rules):
 ```bash
 firebase deploy
 ```
 
+This command will:
+1. Build the frontend (`npm run build` in `frontend/`)
+2. Compile Cloud Functions
+3. Deploy hosting, functions, and security rules
+
 ### Deploy Specific Parts
+
+**Frontend (Hosting):**
 ```bash
-firebase deploy --only hosting              # Frontend only
-firebase deploy --only functions            # Functions only
-firebase deploy --only firestore:rules      # Firestore rules
-firebase deploy --only storage:rules        # Storage rules
+firebase deploy --only hosting
+```
+This automatically runs `npm run build` in the `frontend/` directory.
+
+**Backend (Cloud Functions):**
+```bash
+# Deploy all functions
+firebase deploy --only functions
+
+# Deploy specific function
+firebase deploy --only functions:createBookmark
+firebase deploy --only functions:getBookmarks
+firebase deploy --only functions:updateBookmark
+firebase deploy --only functions:deleteBookmark
+firebase deploy --only functions:getTags
+firebase deploy --only functions:captureScreenshot
+```
+
+**Security Rules:**
+```bash
+# Firestore rules
+firebase deploy --only firestore:rules
+
+# Storage rules
+firebase deploy --only storage:rules
+
+# Both rules
+firebase deploy --only firestore:rules,storage:rules
+```
+
+**Indexes:**
+```bash
+# Deploy Firestore indexes
+firebase deploy --only firestore:indexes
+```
+
+### Preview Deployments
+
+Create a temporary preview URL before deploying to production:
+```bash
+firebase hosting:channel:deploy preview     # Deploy to preview channel
+firebase hosting:channel:list               # List all preview channels
+firebase hosting:channel:delete preview     # Delete preview channel
+```
+
+### Monitoring
+
+**View logs:**
+```bash
+# All functions
+firebase functions:log
+
+# Specific function
+firebase functions:log --only createBookmark
+
+# With limit
+firebase functions:log --limit 100
+```
+
+**List deployed functions:**
+```bash
+firebase functions:list
+```
+
+**Check Firestore databases:**
+```bash
+firebase firestore:databases:list
+firebase firestore:databases:get (default)
 ```
 
 ## Project Structure

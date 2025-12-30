@@ -111,4 +111,50 @@ describe("createBookmark", () => {
     // Tags es undefined si no se proporcionan (no se incluye en la respuesta)
     expect(result.tags).to.be.undefined;
   });
+
+  it("debe rechazar description como null", async () => {
+    const data = {
+      url: "https://example.com",
+      title: "Example Site",
+      description: null as any,
+    };
+
+    const wrapped = test.wrap(createBookmark);
+
+    try {
+      await wrapped({
+        data,
+        auth: {
+          uid: "test-user-123",
+        },
+      } as any);
+      expect.fail("Debería haber lanzado un error");
+    } catch (error: any) {
+      expect(error.code).to.equal("invalid-argument");
+      expect(error.message).to.include("descripción debe ser una cadena");
+    }
+  });
+
+  it("debe rechazar tags como null", async () => {
+    const data = {
+      url: "https://example.com",
+      title: "Example Site",
+      tags: null as any,
+    };
+
+    const wrapped = test.wrap(createBookmark);
+
+    try {
+      await wrapped({
+        data,
+        auth: {
+          uid: "test-user-123",
+        },
+      } as any);
+      expect.fail("Debería haber lanzado un error");
+    } catch (error: any) {
+      expect(error.code).to.equal("invalid-argument");
+      expect(error.message).to.include("etiquetas deben ser un array");
+    }
+  });
 });

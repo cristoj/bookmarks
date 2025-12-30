@@ -235,8 +235,9 @@ describe('BookmarkForm', () => {
       url: 'https://test.com',
       title: 'Test Title',
       description: 'Test description',
-      tags: undefined,
     });
+    // tags no debería estar presente si no se añadieron
+    expect(callArgs[0]).not.toHaveProperty('tags');
     expect(callArgs[1]).toBeUndefined(); // screenshot file parameter
   });
 
@@ -275,9 +276,10 @@ describe('BookmarkForm', () => {
     expect(callArgs[0]).toMatchObject({
       url: 'https://test.com',
       title: 'Test Title',
-      description: undefined,
       tags: ['tag1', 'tag2'],
     });
+    // description no debería estar presente si no se llenó
+    expect(callArgs[0]).not.toHaveProperty('description');
     expect(callArgs[1]).toBeUndefined(); // screenshot file parameter
   });
 
@@ -312,8 +314,10 @@ describe('BookmarkForm', () => {
     expect(callArgs[0]).toMatchObject({
       url: 'https://test.com',
       title: 'Test Title',
-      description: undefined,
     });
+    // description y tags no deberían estar presentes
+    expect(callArgs[0]).not.toHaveProperty('description');
+    expect(callArgs[0]).not.toHaveProperty('tags');
     expect(callArgs[1]).toBeUndefined(); // screenshot file parameter
   });
 
@@ -406,9 +410,10 @@ describe('BookmarkForm', () => {
     expect(callArgs[0]).toMatchObject({
       url: 'https://test.com',
       title: 'Test Title',
-      description: undefined,
-      tags: undefined,
     });
+    // description y tags no deberían estar presentes
+    expect(callArgs[0]).not.toHaveProperty('description');
+    expect(callArgs[0]).not.toHaveProperty('tags');
     expect(callArgs[1]).toBeUndefined(); // screenshot file parameter
   });
 

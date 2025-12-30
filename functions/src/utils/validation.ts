@@ -88,9 +88,9 @@ export function validateBookmarkData(data: BookmarkData): void {
     }
   }
 
-  // Validar descripción (opcional, pero si existe debe ser string)
+  // Validar descripción (opcional, pero si existe debe ser string, no null)
   if (data.description !== undefined) {
-    if (typeof data.description !== "string") {
+    if (data.description === null || typeof data.description !== "string") {
       throw new HttpsError(
         "invalid-argument",
         "La descripción debe ser una cadena de texto"
@@ -104,9 +104,9 @@ export function validateBookmarkData(data: BookmarkData): void {
     }
   }
 
-  // Validar tags (opcional, pero si existe debe ser array de strings)
+  // Validar tags (opcional, pero si existe debe ser array de strings, no null)
   if (data.tags !== undefined) {
-    if (!Array.isArray(data.tags)) {
+    if (data.tags === null || !Array.isArray(data.tags)) {
       throw new HttpsError(
         "invalid-argument",
         "Las etiquetas deben ser un array"

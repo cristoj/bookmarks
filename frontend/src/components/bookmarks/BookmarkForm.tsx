@@ -128,7 +128,7 @@ export function BookmarkForm({
   const [metadataApplied, setMetadataApplied] = useState(false);
 
   // State for screenshot file upload (edit mode only)
-  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [screenshotFile, setScreenshotFile] = useState<File | undefined>(undefined);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
 
   // Reset form when bookmark changes
@@ -196,7 +196,7 @@ export function BookmarkForm({
    * Handle removing selected screenshot
    */
   const handleRemoveScreenshot = () => {
-    setScreenshotFile(null);
+    setScreenshotFile(undefined);
     setScreenshotPreview(null);
   };
 
@@ -207,9 +207,17 @@ export function BookmarkForm({
     const bookmarkData: BookmarkData = {
       url: data.url.trim(),
       title: data.title.trim(),
-      description: data.description.trim() || undefined,
-      tags: data.tags.length > 0 ? data.tags : undefined,
     };
+
+    // Solo incluir descripción si tiene valor
+    if (data.description && data.description.trim()) {
+      bookmarkData.description = data.description.trim();
+    }
+
+    // Solo incluir tags si tiene elementos
+    if (data.tags && data.tags.length > 0) {
+      bookmarkData.tags = data.tags;
+    }
 
     onSave(bookmarkData, screenshotFile);
   };

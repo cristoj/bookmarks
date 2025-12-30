@@ -52,8 +52,10 @@ export function useDeleteBookmark() {
       return await bookmarksService.delete(bookmarkId);
     },
     onSuccess: () => {
-      // Invalidate and refetch bookmarks query
+      // Invalidate and refetch bookmarks, count, and tags queries
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
     onError: (error: Error) => {
       // Log error for debugging

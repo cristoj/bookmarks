@@ -59,8 +59,9 @@ export function useCreateBookmark() {
         addTagsToCache(bookmark.tags);
       }
 
-      // Invalidate and refetch bookmarks and tags queries
+      // Invalidate and refetch bookmarks, count, and tags queries
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
     onError: (error: Error) => {

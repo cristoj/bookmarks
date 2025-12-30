@@ -4,6 +4,7 @@ import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { TagAutocompleteInput } from '../common/TagAutocompleteInput';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useBookmarksCount } from '../../hooks/useBookmarksCount';
 import type { Tag } from '../../services/bookmarks.service';
 
 /**
@@ -95,6 +96,14 @@ export function BookmarkFilters({
 
   // Mobile collapse state
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Get bookmarks count with current filters
+  const { data: countData, isLoading: isCountLoading } = useBookmarksCount({
+    tags: filters.tags,
+    search: debouncedSearch,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+  });
 
   // Update filters when debounced search changes
   useEffect(() => {
@@ -194,6 +203,17 @@ export function BookmarkFilters({
 
       {/* Filters Content */}
       <div className={`${isCollapsed ? 'hidden md:block' : 'block'}`}>
+        {/* Bookmark Counter */}
+        <div className="mb-3">
+          <span className="text-sm text-gray-600">
+            Total:{' '}
+            <span className="font-bold text-gray-900">
+              {isCountLoading ? '...' : countData?.count || 0}
+            </span>
+            {' bookmarks'}
+          </span>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-11 gap-4">
           {/* Search Input */}
           <div className="md:col-span-4">

@@ -89,8 +89,9 @@ export function useUpdateBookmark() {
         addTagsToCache(variables.data.tags);
       }
 
-      // Invalidate and refetch bookmarks and tags queries
+      // Invalidate and refetch bookmarks, count, and tags queries
       await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      await queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
       await queryClient.invalidateQueries({ queryKey: ['tags'] });
       // Force refetch immediately
       await queryClient.refetchQueries({ queryKey: ['bookmarks'] });

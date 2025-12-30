@@ -18,6 +18,7 @@ setGlobalOptions({
 // Exportar funciones de bookmarks
 export {createBookmark} from "./bookmarks/create";
 export {getBookmarks} from "./bookmarks/get";
+export {getBookmarksCount} from "./bookmarks/count";
 export {updateBookmark} from "./bookmarks/update";
 export {deleteBookmark} from "./bookmarks/delete";
 export {getTags} from "./bookmarks/tags";

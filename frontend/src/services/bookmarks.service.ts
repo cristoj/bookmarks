@@ -60,6 +60,24 @@ export interface GetBookmarksResponse {
 }
 
 /**
+ * Interface for filters when getting bookmarks count
+ */
+export interface BookmarkCountFilters {
+  tags?: string[];
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  folderId?: string;
+}
+
+/**
+ * Interface for the response from getCount
+ */
+export interface GetBookmarksCountResponse {
+  count: number;
+}
+
+/**
  * Interface for a tag
  */
 export interface Tag {
@@ -353,11 +371,59 @@ export async function getPageMetadata(url: string): Promise<PageMetadata> {
 }
 
 /**
+ * Gets the count of bookmarks with optional filters
+ *
+ * Calls the getBookmarksCount Cloud Function to retrieve the total count
+ * of bookmarks that match the provided filters.
+ * Uses efficient Firestore count aggregation when possible.
+ *
+ * @param filters - Optional filters for the count query
+ * @returns Object containing the count of bookmarks
+ * @throws BookmarkServiceError if the operation fails
+ *
+ * @example
+ * ```typescript
+ * // Get total bookmarks count
+ * const result = await bookmarksService.getCount();
+ * console.log(`Total: ${result.count}`);
+ *
+ * // Count filtered bookmarks
+ * const filtered = await bookmarksService.getCount({
+ *   tags: ['javascript'],
+ *   search: 'tutorial'
+ * });
+ * console.log(`Filtered: ${filtered.count}`);
+ * ```
+ */
+export async function getCount(
+  filters: BookmarkCountFilters = {}
+): Promise<GetBookmarksCountResponse> {
+  try {
+    const getBookmarksCount = httpsCallable<BookmarkCountFilters, GetBookmarksCountResponse>(
+      functions,
+      'getBookmarksCount'
+    );
+
+    const result: HttpsCallableResult<GetBookmarksCountResponse> =
+      await getBookmarksCount(filters);
+    return result.data;
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; details?: unknown };
+    throw new BookmarkServiceError(
+      err.message || 'Failed to get bookmarks count',
+      err.code,
+      err.details
+    );
+  }
+}
+
+/**
  * Default export with all service functions
  */
 export default {
   create,
   getAll,
+  getCount,
   update,
   delete: deleteBookmark,
   getTags,

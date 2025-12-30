@@ -8,12 +8,25 @@ import { QueryClient } from '@tanstack/react-query';
 import { useCreateBookmark } from './useCreateBookmark';
 import bookmarksService from '@services/bookmarks.service';
 import { createQueryWrapper, createTestQueryClient } from './test-utils';
+import * as tagsCache from '@/utils/tagsCache';
 
 // Mock the bookmarks service
 vi.mock('@services/bookmarks.service', () => ({
   default: {
     create: vi.fn(),
   },
+}));
+
+// Mock the tagsCache utilities
+vi.mock('@/utils/tagsCache', () => ({
+  getTagsFromCache: vi.fn(),
+  saveTagsToCache: vi.fn(),
+  addTagToCache: vi.fn(),
+  addTagsToCache: vi.fn(),
+  removeTagFromCache: vi.fn(),
+  clearTagsCache: vi.fn(),
+  getCacheTimestamp: vi.fn(),
+  isCacheStale: vi.fn(),
 }));
 
 describe('useCreateBookmark', () => {
@@ -61,7 +74,7 @@ describe('useCreateBookmark', () => {
     expect(bookmarksService.create).toHaveBeenCalledWith(mockBookmarkData);
   });
 
-  it('should invalidate bookmarks query on success', async () => {
+  it('should invalidate bookmarks and tags queries on success', async () => {
     const mockBookmarkData = {
       url: 'https://example.com',
       title: 'Example Site',
@@ -95,6 +108,77 @@ describe('useCreateBookmark', () => {
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['bookmarks'] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['tags'] });
+  });
+
+  it('should add tags to localStorage cache when bookmark has tags', async () => {
+    const mockBookmarkData = {
+      url: 'https://example.com',
+      title: 'Example Site',
+      tags: ['react', 'javascript'],
+    };
+
+    const mockCreatedBookmark = {
+      id: 'bookmark-123',
+      userId: 'user-123',
+      description: '',
+      folderId: null,
+      screenshotUrl: null,
+      screenshotStatus: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...mockBookmarkData,
+    };
+
+    vi.mocked(bookmarksService.create).mockResolvedValue(mockCreatedBookmark);
+
+    const { result } = renderHook(() => useCreateBookmark(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    result.current.mutate(mockBookmarkData);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    // Should add tags to cache
+    expect(tagsCache.addTagsToCache).toHaveBeenCalledWith(['react', 'javascript']);
+  });
+
+  it('should not add tags to cache when bookmark has no tags', async () => {
+    const mockBookmarkData = {
+      url: 'https://example.com',
+      title: 'Example Site',
+    };
+
+    const mockCreatedBookmark = {
+      id: 'bookmark-123',
+      userId: 'user-123',
+      description: '',
+      tags: [],
+      folderId: null,
+      screenshotUrl: null,
+      screenshotStatus: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      ...mockBookmarkData,
+    };
+
+    vi.mocked(bookmarksService.create).mockResolvedValue(mockCreatedBookmark);
+
+    const { result } = renderHook(() => useCreateBookmark(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    result.current.mutate(mockBookmarkData);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    // Should NOT add tags to cache
+    expect(tagsCache.addTagsToCache).not.toHaveBeenCalled();
   });
 
   it('should handle errors', async () => {

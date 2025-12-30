@@ -8,12 +8,28 @@ import { QueryClient } from '@tanstack/react-query';
 import { useUpdateBookmark } from './useUpdateBookmark';
 import bookmarksService from '@services/bookmarks.service';
 import { createQueryWrapper, createTestQueryClient } from './test-utils';
+import * as tagsCache from '@/utils/tagsCache';
 
 // Mock the bookmarks service
 vi.mock('@services/bookmarks.service', () => ({
   default: {
     update: vi.fn(),
   },
+}));
+
+// Mock the storage service
+vi.mock('@services/storage.service');
+
+// Mock the tagsCache utilities
+vi.mock('@/utils/tagsCache', () => ({
+  getTagsFromCache: vi.fn(),
+  saveTagsToCache: vi.fn(),
+  addTagToCache: vi.fn(),
+  addTagsToCache: vi.fn(),
+  removeTagFromCache: vi.fn(),
+  clearTagsCache: vi.fn(),
+  getCacheTimestamp: vi.fn(),
+  isCacheStale: vi.fn(),
 }));
 
 describe('useUpdateBookmark', () => {
@@ -61,7 +77,7 @@ describe('useUpdateBookmark', () => {
     );
   });
 
-  it('should invalidate bookmarks query on success', async () => {
+  it('should invalidate bookmarks and tags queries on success', async () => {
     const updateParams = {
       bookmarkId: 'bookmark-123',
       data: {
@@ -88,6 +104,65 @@ describe('useUpdateBookmark', () => {
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['bookmarks'] });
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['tags'] });
+  });
+
+  it('should add tags to localStorage cache when updating with tags', async () => {
+    const updateParams = {
+      bookmarkId: 'bookmark-123',
+      data: {
+        title: 'Updated Title',
+        tags: ['react', 'typescript', 'vite'],
+      },
+    };
+
+    const mockResponse = {
+      success: true,
+    };
+
+    vi.mocked(bookmarksService.update).mockResolvedValue(mockResponse);
+
+    const { result } = renderHook(() => useUpdateBookmark(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    result.current.mutate(updateParams);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    // Should add tags to cache
+    expect(tagsCache.addTagsToCache).toHaveBeenCalledWith(['react', 'typescript', 'vite']);
+  });
+
+  it('should not add tags to cache when updating without tags', async () => {
+    const updateParams = {
+      bookmarkId: 'bookmark-123',
+      data: {
+        title: 'Updated Title',
+        description: 'Updated description',
+      },
+    };
+
+    const mockResponse = {
+      success: true,
+    };
+
+    vi.mocked(bookmarksService.update).mockResolvedValue(mockResponse);
+
+    const { result } = renderHook(() => useUpdateBookmark(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    result.current.mutate(updateParams);
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    // Should NOT add tags to cache
+    expect(tagsCache.addTagsToCache).not.toHaveBeenCalled();
   });
 
   it('should handle errors', async () => {

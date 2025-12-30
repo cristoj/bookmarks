@@ -8,6 +8,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { useTags } from './useTags';
 import bookmarksService from '@services/bookmarks.service';
 import { createQueryWrapper, createTestQueryClient } from './test-utils';
+import * as tagsCache from '@/utils/tagsCache';
 
 // Mock the bookmarks service
 vi.mock('@services/bookmarks.service', () => ({
@@ -16,12 +17,26 @@ vi.mock('@services/bookmarks.service', () => ({
   },
 }));
 
+// Mock the tagsCache utilities
+vi.mock('@/utils/tagsCache', () => ({
+  getTagsFromCache: vi.fn(),
+  saveTagsToCache: vi.fn(),
+  addTagToCache: vi.fn(),
+  addTagsToCache: vi.fn(),
+  removeTagFromCache: vi.fn(),
+  clearTagsCache: vi.fn(),
+  getCacheTimestamp: vi.fn(),
+  isCacheStale: vi.fn(),
+}));
+
 describe('useTags', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
     queryClient = createTestQueryClient();
     vi.clearAllMocks();
+    // Reset localStorage mock
+    vi.mocked(tagsCache.getTagsFromCache).mockReturnValue(null);
   });
 
   it('should fetch tags successfully', async () => {
@@ -92,7 +107,7 @@ describe('useTags', () => {
     expect(result.current.error).toEqual(mockError);
   });
 
-  it('should cache tags for 5 minutes', async () => {
+  it('should save tags to localStorage after fetching', async () => {
     const mockTags = [
       {
         name: 'javascript',
@@ -103,29 +118,57 @@ describe('useTags', () => {
 
     vi.mocked(bookmarksService.getTags).mockResolvedValue(mockTags);
 
-    // First render
-    const { result: result1 } = renderHook(() => useTags(), {
+    const { result } = renderHook(() => useTags(), {
       wrapper: createQueryWrapper(queryClient),
     });
 
     await waitFor(() => {
-      expect(result1.current.isSuccess).toBe(true);
+      expect(result.current.isSuccess).toBe(true);
     });
 
+    // Should fetch from API
     expect(bookmarksService.getTags).toHaveBeenCalledTimes(1);
 
-    // Second render should use cache
-    const { result: result2 } = renderHook(() => useTags(), {
+    // Should save to localStorage
+    expect(tagsCache.saveTagsToCache).toHaveBeenCalledWith(mockTags);
+  });
+
+  it('should use localStorage cache as initial data', async () => {
+    const cachedTags = [
+      {
+        name: 'cached-tag',
+        count: 25,
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
+    const freshTags = [
+      {
+        name: 'fresh-tag',
+        count: 30,
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
+    vi.mocked(tagsCache.getTagsFromCache).mockReturnValue(cachedTags);
+    vi.mocked(bookmarksService.getTags).mockResolvedValue(freshTags);
+
+    const { result } = renderHook(() => useTags(), {
       wrapper: createQueryWrapper(queryClient),
     });
 
+    // Should immediately have cached data
+    expect(result.current.data).toEqual(cachedTags);
+
     await waitFor(() => {
-      expect(result2.current.isSuccess).toBe(true);
+      expect(result.current.isSuccess).toBe(true);
     });
 
-    // Should still be 1 because it used the cache
+    // After fetch, should have fresh data
+    expect(result.current.data).toEqual(freshTags);
+
+    // Should have fetched from API despite having cache
     expect(bookmarksService.getTags).toHaveBeenCalledTimes(1);
-    expect(result2.current.data).toEqual(mockTags);
   });
 
   it('should return tags ordered by count', async () => {

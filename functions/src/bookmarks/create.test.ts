@@ -108,6 +108,7 @@ describe("createBookmark", () => {
     } as any);
 
     expect(result).to.have.property("id");
-    expect(result.tags).to.deep.equal([]);
+    // Tags es undefined si no se proporcionan (no se incluye en la respuesta)
+    expect(result.tags).to.be.undefined;
   });
 });

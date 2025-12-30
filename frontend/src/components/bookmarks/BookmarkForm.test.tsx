@@ -6,6 +6,27 @@ import { BookmarkForm } from './BookmarkForm';
 import type { Bookmark } from '../../services/bookmarks.service';
 import { renderWithQuery } from '../../test/test-utils';
 
+// Mock useTags hook
+vi.mock('../../hooks/useTags', () => ({
+  useTags: vi.fn(() => ({
+    data: [
+      { name: 'javascript', count: 10, updatedAt: '2024-01-01' },
+      { name: 'react', count: 5, updatedAt: '2024-01-02' },
+    ],
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+// Mock usePageMetadata hook
+vi.mock('../../hooks/usePageMetadata', () => ({
+  usePageMetadata: vi.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+  })),
+}));
+
 /**
  * Test suite for BookmarkForm component
  */
@@ -47,8 +68,9 @@ describe('BookmarkForm', () => {
 
     expect(screen.getByLabelText(/URL/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Title/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Description/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Tags/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Description.*optional/i)).toBeInTheDocument();
+    // Tags input uses TagAutocompleteInput which has a different structure
+    expect(screen.getByPlaceholderText(/Type to search tags/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Create Bookmark/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
   });
@@ -67,14 +89,14 @@ describe('BookmarkForm', () => {
 
     const urlInput = screen.getByLabelText(/URL/i) as HTMLInputElement;
     const titleInput = screen.getByLabelText(/Title/i) as HTMLInputElement;
-    const descriptionInput = screen.getByLabelText(/Description/i) as HTMLTextAreaElement;
+    const descriptionInput = screen.getByLabelText(/Description.*optional/i) as HTMLTextAreaElement;
 
     expect(urlInput.value).toBe('https://example.com');
     expect(titleInput.value).toBe('Example Website');
     expect(descriptionInput.value).toBe('This is a test bookmark');
     expect(screen.getByText('test')).toBeInTheDocument();
     expect(screen.getByText('example')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Update Bookmark/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Update Bookmark/i})).toBeInTheDocument();
   });
 
   /**
@@ -194,7 +216,7 @@ describe('BookmarkForm', () => {
 
     const urlInput = screen.getByLabelText(/URL/i);
     const titleInput = screen.getByLabelText(/Title/i);
-    const descriptionInput = screen.getByLabelText(/Description/i);
+    const descriptionInput = screen.getByLabelText(/Description.*optional/i);
 
     await user.type(urlInput, 'https://test.com');
     await user.type(titleInput, 'Test Title');
@@ -204,19 +226,24 @@ describe('BookmarkForm', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockHandlers.onSave).toHaveBeenCalledWith({
-        url: 'https://test.com',
-        title: 'Test Title',
-        description: 'Test description',
-        tags: undefined,
-      });
+      expect(mockHandlers.onSave).toHaveBeenCalled();
     });
+
+    // Check the call arguments
+    const callArgs = mockHandlers.onSave.mock.calls[0];
+    expect(callArgs[0]).toMatchObject({
+      url: 'https://test.com',
+      title: 'Test Title',
+      description: 'Test description',
+      tags: undefined,
+    });
+    expect(callArgs[1]).toBeUndefined(); // screenshot file parameter
   });
 
   /**
-   * Test: Should submit form with tags
+   * Test: Should submit form with tags using autocomplete
    */
-  it('should submit form with tags', async () => {
+  it('should submit form with tags using autocomplete', async () => {
     const user = userEvent.setup();
     renderWithQuery(
       <BookmarkForm
@@ -231,8 +258,8 @@ describe('BookmarkForm', () => {
     await user.type(urlInput, 'https://test.com');
     await user.type(titleInput, 'Test Title');
 
-    // Add tags
-    const tagsInput = screen.getByLabelText(/Tags/i);
+    // Add tags using TagAutocompleteInput
+    const tagsInput = screen.getByPlaceholderText(/Type to search tags/i);
     await user.type(tagsInput, 'tag1{Enter}');
     await user.type(tagsInput, 'tag2{Enter}');
 
@@ -240,13 +267,54 @@ describe('BookmarkForm', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockHandlers.onSave).toHaveBeenCalledWith({
-        url: 'https://test.com',
-        title: 'Test Title',
-        description: undefined,
-        tags: ['tag1', 'tag2'],
-      });
+      expect(mockHandlers.onSave).toHaveBeenCalled();
     });
+
+    // Check the call arguments
+    const callArgs = mockHandlers.onSave.mock.calls[0];
+    expect(callArgs[0]).toMatchObject({
+      url: 'https://test.com',
+      title: 'Test Title',
+      description: undefined,
+      tags: ['tag1', 'tag2'],
+    });
+    expect(callArgs[1]).toBeUndefined(); // screenshot file parameter
+  });
+
+  /**
+   * Test: Should submit form without description (optional field)
+   */
+  it('should submit form without description', async () => {
+    const user = userEvent.setup();
+    renderWithQuery(
+      <BookmarkForm
+        onSave={mockHandlers.onSave}
+        onCancel={mockHandlers.onCancel}
+      />
+    );
+
+    const urlInput = screen.getByLabelText(/URL/i);
+    const titleInput = screen.getByLabelText(/Title/i);
+
+    await user.type(urlInput, 'https://test.com');
+    await user.type(titleInput, 'Test Title');
+    // Intentionally not filling description
+
+    const submitButton = screen.getByRole('button', { name: /Create Bookmark/i });
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockHandlers.onSave).toHaveBeenCalled();
+    });
+
+    // Check the call arguments
+    const callArgs = mockHandlers.onSave.mock.calls[0];
+    expect(callArgs[0]).toMatchObject({
+      url: 'https://test.com',
+      title: 'Test Title',
+      description: undefined,
+    });
+    expect(callArgs[1]).toBeUndefined(); // screenshot file parameter
   });
 
   /**
@@ -281,7 +349,7 @@ describe('BookmarkForm', () => {
 
     const urlInput = screen.getByLabelText(/URL/i) as HTMLInputElement;
     const titleInput = screen.getByLabelText(/Title/i) as HTMLInputElement;
-    const descriptionInput = screen.getByLabelText(/Description/i) as HTMLTextAreaElement;
+    const descriptionInput = screen.getByLabelText(/Description.*optional/i) as HTMLTextAreaElement;
     const submitButton = screen.getByRole('button', { name: /Create Bookmark/i }) as HTMLButtonElement;
     const cancelButton = screen.getByRole('button', { name: /Cancel/i }) as HTMLButtonElement;
 
@@ -330,13 +398,18 @@ describe('BookmarkForm', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockHandlers.onSave).toHaveBeenCalledWith({
-        url: 'https://test.com',
-        title: 'Test Title',
-        description: undefined,
-        tags: undefined,
-      });
+      expect(mockHandlers.onSave).toHaveBeenCalled();
     });
+
+    // Check the call arguments
+    const callArgs = mockHandlers.onSave.mock.calls[0];
+    expect(callArgs[0]).toMatchObject({
+      url: 'https://test.com',
+      title: 'Test Title',
+      description: undefined,
+      tags: undefined,
+    });
+    expect(callArgs[1]).toBeUndefined(); // screenshot file parameter
   });
 
   /**

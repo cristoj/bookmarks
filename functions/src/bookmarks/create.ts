@@ -75,10 +75,9 @@ export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkRespons
     const now = Timestamp.now();
 
     // Preparar datos del bookmark
-    const bookmarkData = {
+    const bookmarkData: Record<string, unknown> = {
       url: data.url,
       title: data.title.trim(),
-      description: data.description?.trim() || "",
       tags: data.tags || [],
       folderId: data.folderId || null,
       userId,
@@ -89,12 +88,17 @@ export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkRespons
       updatedAt: now,
     };
 
+    // Solo incluir descripción si tiene valor
+    if (data.description && data.description.trim()) {
+      bookmarkData.description = data.description.trim();
+    }
+
     // Crear el documento
-    const bookmarkRef = await db.collection("bookmarks").add(bookmarkData);
+    const bookmarkRef = await db.collection("bookmarks").add(bookmarkData as Record<string, unknown>);
 
     // Actualizar conteo de tags
-    if (bookmarkData.tags.length > 0) {
-      await updateTagCounts(bookmarkData.tags, []);
+    if ((bookmarkData.tags as string[]).length > 0) {
+      await updateTagCounts(bookmarkData.tags as string[], []);
     }
 
     // NOTA: La captura de screenshot debe implementarse de una de estas formas:
@@ -123,16 +127,26 @@ export const createBookmark = onCall<BookmarkData, Promise<CreateBookmarkRespons
 
 
     // Retornar el bookmark creado
-    return {
+    const response: CreateBookmarkResponse = {
       id: bookmarkRef.id,
-      url: bookmarkData.url,
-      title: bookmarkData.title,
-      description: bookmarkData.description,
-      tags: bookmarkData.tags,
-      folderId: bookmarkData.folderId || undefined,
-      userId: bookmarkData.userId,
-      createdAt: bookmarkData.createdAt.toDate().toISOString(),
-      updatedAt: bookmarkData.updatedAt.toDate().toISOString(),
+      url: bookmarkData.url as string,
+      title: bookmarkData.title as string,
+      userId: bookmarkData.userId as string,
+      createdAt: (bookmarkData.createdAt as Timestamp).toDate().toISOString(),
+      updatedAt: (bookmarkData.updatedAt as Timestamp).toDate().toISOString(),
     };
+
+    // Solo incluir campos opcionales si tienen valor
+    if (bookmarkData.description) {
+      response.description = bookmarkData.description as string;
+    }
+    if (bookmarkData.tags && (bookmarkData.tags as string[]).length > 0) {
+      response.tags = bookmarkData.tags as string[];
+    }
+    if (bookmarkData.folderId) {
+      response.folderId = bookmarkData.folderId as string;
+    }
+
+    return response;
   }
 );

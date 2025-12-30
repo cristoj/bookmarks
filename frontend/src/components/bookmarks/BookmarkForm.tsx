@@ -303,7 +303,7 @@ export function BookmarkForm({
 
       {/* Description Field */}
       <Textarea
-        label="Description"
+        label="Description (optional)"
         placeholder="Optional description or notes"
         rows={4}
         disabled={isLoading}

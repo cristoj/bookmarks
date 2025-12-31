@@ -1,6 +1,7 @@
 import React, { useState, type JSX } from 'react';
 import { type User as FirebaseUser } from 'firebase/auth';
 import { Button } from '@components/common/Button';
+import { ThemeToggle } from '@components/common/ThemeToggle';
 
 /**
  * Header component props
@@ -50,7 +51,7 @@ export function Header({ user, onLogout, onNewBookmark, onSearch }: HeaderProps)
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo / Brand */}
@@ -69,7 +70,7 @@ export function Header({ user, onLogout, onNewBookmark, onSearch }: HeaderProps)
                   d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
                 />
               </svg>
-              <h1 className="text-xl font-bold text-gray-900 hidden sm:block">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 hidden sm:block">
                 Bookmarks
               </h1>
             </div>
@@ -100,7 +101,7 @@ export function Header({ user, onLogout, onNewBookmark, onSearch }: HeaderProps)
                     placeholder="Quick search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:placeholder-gray-400 dark:focus:placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-colors"
                   />
                 </div>
               </form>
@@ -109,6 +110,9 @@ export function Header({ user, onLogout, onNewBookmark, onSearch }: HeaderProps)
 
           {/* Actions (Right) */}
           <div className="flex items-center space-x-3">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* New Bookmark Button */}
             {onNewBookmark && (
               <Button
@@ -140,7 +144,7 @@ export function Header({ user, onLogout, onNewBookmark, onSearch }: HeaderProps)
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   aria-label="User menu"
                 >
                   {/* User Avatar */}
@@ -151,12 +155,12 @@ export function Header({ user, onLogout, onNewBookmark, onSearch }: HeaderProps)
                     {user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'}
                   </div>
                   {/* User Name - Hidden on mobile, visible on desktop */}
-                  <span className="hidden sm:block text-sm font-medium text-gray-700">
+                  <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-gray-200">
                     {user.displayName || user.email?.split('@')[0]}
                   </span>
                   {/* Dropdown Icon - Always visible */}
                   <svg
-                    className={`h-4 w-4 text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -178,14 +182,14 @@ export function Header({ user, onLogout, onNewBookmark, onSearch }: HeaderProps)
                       className="fixed inset-0 z-10"
                       onClick={() => setShowUserMenu(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+                    <div className="absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 dark:ring-gray-700 z-20">
                       <div className="py-1">
                         {/* User Info */}
-                        <div className="px-4 py-3 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                             {user.displayName || 'User'}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {user.email}
                           </p>
                         </div>
@@ -195,10 +199,10 @@ export function Header({ user, onLogout, onNewBookmark, onSearch }: HeaderProps)
                             setShowUserMenu(false);
                             onLogout();
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors"
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 transition-colors"
                         >
                           <svg
-                            className="h-4 w-4 text-gray-500"
+                            className="h-4 w-4 text-gray-500 dark:text-gray-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"

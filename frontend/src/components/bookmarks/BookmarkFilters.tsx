@@ -172,7 +172,7 @@ export function BookmarkFilters({
 
   // Container classes
   const containerClasses = `
-    bg-white border border-gray-200 rounded-lg shadow-sm p-4
+    bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-4
     ${sticky ? 'sticky top-0 z-10' : ''}
     ${className}
   `.trim();
@@ -182,7 +182,7 @@ export function BookmarkFilters({
       {/* Mobile Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="flex md:hidden w-full items-center justify-between text-gray-700 font-medium mb-3"
+        className="flex md:hidden w-full items-center justify-between text-gray-700 dark:text-gray-200 font-medium mb-3"
         aria-label={isCollapsed ? 'Show filters' : 'Hide filters'}
       >
         <span className="flex items-center gap-2">
@@ -205,10 +205,10 @@ export function BookmarkFilters({
       <div className={`${isCollapsed ? 'hidden md:block' : 'block'}`}>
         {/* Bookmark Counter */}
         <div className="mb-3">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             Total:{' '}
-            <span className="font-bold text-gray-900">
-              {isCountLoading ? '...' : countData?.count || 0}
+            <span className="font-bold text-gray-900 dark:text-gray-100">
+              {isCountLoading ? '...' : (countData?.count || 0).toLocaleString('es-ES')}
             </span>
             {' bookmarks'}
           </span>
@@ -218,13 +218,13 @@ export function BookmarkFilters({
           {/* Search Input */}
           <div className="md:col-span-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Search in title or description..."
                 value={searchInput}
                 onChange={handleSearchChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 aria-label="Search bookmarks"
               />
             </div>

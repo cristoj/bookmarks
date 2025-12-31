@@ -144,11 +144,11 @@ export function RegisterForm(): JSX.Element {
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900">Create an account</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create an account</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
             Join us and start organizing your bookmarks
           </p>
         </div>

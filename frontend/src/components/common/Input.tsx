@@ -67,12 +67,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     // Base input styles
     const baseStyles =
-      'w-full px-3 py-2 border rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed';
+      'w-full px-3 py-2 border rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500';
 
     // Normal and error states
     const stateStyles = error
       ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-      : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500';
+      : 'border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500';
 
     // Combine all styles
     const inputStyles = `${baseStyles} ${stateStyles} ${className}`;
@@ -81,9 +81,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className={`space-y-1 ${containerClassName}`}>
         {/* Label */}
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
+            {required && <span className="text-red-500 dark:text-red-400 ml-1">*</span>}
           </label>
         )}
 
@@ -98,7 +98,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
         {/* Error message */}
         {error && (
-          <p className="text-sm text-red-500 flex items-start">
+          <p className="text-sm text-red-600 dark:text-red-400 flex items-start">
             <svg
               className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0"
               fill="currentColor"
@@ -116,7 +116,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
         {/* Helper text (only shown when no error) */}
         {!error && helperText && (
-          <p className="text-sm text-gray-500">{helperText}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{helperText}</p>
         )}
       </div>
     );

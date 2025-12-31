@@ -66,7 +66,7 @@ export function BookmarkCard({
   } = bookmark;
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200 w-full mx-auto">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-200 w-full mx-auto flex flex-col h-full">
       {/* Screenshot Section */}
       <div className="relative aspect-video bg-black">
         {screenshotUrl ? (
@@ -79,7 +79,7 @@ export function BookmarkCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <ExternalLink className="w-12 h-12 text-gray-300" />
+            <ExternalLink className="w-12 h-12 text-gray-300 dark:text-gray-600" />
           </div>
         )}
         {/* Overlay with URL link */}
@@ -95,38 +95,38 @@ export function BookmarkCard({
       </div>
 
       {/* Content Section */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 flex flex-col flex-1">
         {/* Title */}
         <div>
           <a
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-2"
+            className="text-lg font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-2"
             title={title}
           >
             {title}
           </a>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {formatRelativeTime(createdAt)}
           </p>
         </div>
 
         {/* Description */}
         {description && (
-          <p className="text-sm text-gray-600 line-clamp-2" title={description}>
+          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mt-3" title={description}>
             {description}
           </p>
         )}
 
         {/* Tags */}
         {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 mt-3">
             {tags.map((tag) => (
               <button
                 key={tag}
                 onClick={() => onTagClick?.(tag)}
-                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
                 aria-label={`Filtrar por tag: ${tag}`}
               >
                 <TagIcon className="w-3 h-3 mr-1" />
@@ -137,10 +137,10 @@ export function BookmarkCard({
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-2 border-t border-gray-100">
+        <div className="flex gap-2 pt-3 mt-auto border-t border-gray-100 dark:border-gray-700">
           <button
             onClick={() => onEdit(bookmark)}
-            className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+            className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
             aria-label="Editar bookmark"
           >
             <Edit className="w-4 h-4 mr-1.5" />
@@ -148,7 +148,7 @@ export function BookmarkCard({
           </button>
           <button
             onClick={() => onDelete(id)}
-            className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+            className="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
             aria-label="Eliminar bookmark"
           >
             <Trash2 className="w-4 h-4 mr-1.5" />

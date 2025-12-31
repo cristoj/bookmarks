@@ -213,7 +213,7 @@ export function Home(): JSX.Element {
   const isDeleting = deleteBookmarkMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header with logout */}
       <Header
         user={user}
@@ -235,10 +235,10 @@ export function Home(): JSX.Element {
 
         {/* Error State */}
         {bookmarksError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
             <div className="flex items-start gap-3">
               <svg
-                className="w-5 h-5 text-red-600 mt-0.5"
+                className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -251,10 +251,10 @@ export function Home(): JSX.Element {
                 />
               </svg>
               <div>
-                <h3 className="text-sm font-medium text-red-800">
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
                   Failed to load bookmarks
                 </h3>
-                <p className="text-sm text-red-700 mt-1">
+                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
                   {bookmarksError.message || 'An unexpected error occurred'}
                 </p>
               </div>
@@ -278,7 +278,7 @@ export function Home(): JSX.Element {
       {/* Floating Action Button (Mobile) */}
       <button
         onClick={handleOpenCreateModal}
-        className="md:hidden fixed bottom-6 right-6 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 active:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 z-30"
+        className="md:hidden fixed bottom-6 right-6 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 active:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 z-30"
         aria-label="Create new bookmark"
       >
         <Plus className="w-6 h-6" />
@@ -307,25 +307,25 @@ export function Home(): JSX.Element {
         size="sm"
       >
         <div className="space-y-4">
-          <p className="text-gray-700">
+          <p className="text-gray-700 dark:text-gray-300">
             Are you sure you want to delete this bookmark?
           </p>
           {modalState.bookmark && (
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <p className="font-medium text-gray-900 truncate">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+              <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
                 {modalState.bookmark.title}
               </p>
-              <p className="text-sm text-gray-600 truncate mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400 truncate mt-1">
                 {modalState.bookmark.url}
               </p>
             </div>
           )}
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             This action cannot be undone.
           </p>
 
           {/* Delete Actions */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
+          <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               variant="secondary"
               onClick={handleCloseModal}

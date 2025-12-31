@@ -2,6 +2,7 @@ import { useState, useRef, type KeyboardEvent, type ChangeEvent } from 'react';
 import { X } from 'lucide-react';
 import { useDebounce } from '../../hooks/useDebounce';
 import type { Tag } from '../../services/bookmarks.service';
+import { formatNumber } from '../../utils/numberFormat';
 
 /**
  * TagAutocompleteInput component props
@@ -256,7 +257,7 @@ export function TagAutocompleteInput({
                 >
                   <span className="text-sm font-medium">{tag.name}</span>
                   <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-                    {tag.count.toLocaleString('es-ES')}
+                    {formatNumber(tag.count)}
                   </span>
                 </button>
               ))

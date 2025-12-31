@@ -6,6 +6,7 @@ import { TagAutocompleteInput } from '../common/TagAutocompleteInput';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useBookmarksCount } from '../../hooks/useBookmarksCount';
 import type { Tag } from '../../services/bookmarks.service';
+import { formatNumber } from '../../utils/numberFormat';
 
 /**
  * Filter values interface
@@ -208,7 +209,7 @@ export function BookmarkFilters({
           <span className="text-sm text-gray-600 dark:text-gray-400">
             Total:{' '}
             <span className="font-bold text-gray-900 dark:text-gray-100">
-              {isCountLoading ? '...' : (countData?.count || 0).toLocaleString('es-ES')}
+              {isCountLoading ? '...' : formatNumber(countData?.count || 0)}
             </span>
             {' bookmarks'}
           </span>

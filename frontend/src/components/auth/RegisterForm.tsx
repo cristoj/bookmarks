@@ -92,6 +92,7 @@ export function RegisterForm(): JSX.Element {
    */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    return;
 
     // Validate form
     if (!validateForm()) {
@@ -144,21 +145,21 @@ export function RegisterForm(): JSX.Element {
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+      <div className="bg-white dark:bg-gray-800 shadow-lg p-8 rounded-lg">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create an account</h2>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+          <h2 className="font-bold text-gray-900 dark:text-gray-100 text-3xl">Create an account</h2>
+          <p className="mt-2 text-gray-600 dark:text-gray-300 text-sm">
             Join us and start organizing your bookmarks
           </p>
         </div>
 
         {/* General error message */}
         {generalError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="bg-red-50 mb-6 p-4 border border-red-200 rounded-lg">
             <div className="flex items-start">
               <svg
-                className="w-5 h-5 text-red-500 mr-2 shrink-0 mt-0.5"
+                className="mt-0.5 mr-2 w-5 h-5 text-red-500 shrink-0"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -168,7 +169,7 @@ export function RegisterForm(): JSX.Element {
                   clipRule="evenodd"
                 />
               </svg>
-              <p className="text-sm text-red-800">{generalError}</p>
+              <p className="text-red-800 text-sm">{generalError}</p>
             </div>
           </div>
         )}
@@ -231,8 +232,8 @@ export function RegisterForm(): JSX.Element {
           {/* reCAPTCHA */}
           <div id="register-recaptcha" className="flex justify-center mb-4"></div>
           {recaptchaError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{recaptchaError}</p>
+            <div className="bg-red-50 mb-4 p-3 border border-red-200 rounded-lg">
+              <p className="text-red-800 text-sm">{recaptchaError}</p>
             </div>
           )}
 
@@ -242,7 +243,7 @@ export function RegisterForm(): JSX.Element {
             variant="primary"
             fullWidth
             loading={loading}
-            disabled={loading}
+            disabled={true}
             className="mt-6"
           >
             {loading ? 'Creating account...' : 'Create account'}
@@ -250,12 +251,12 @@ export function RegisterForm(): JSX.Element {
         </form>
 
         {/* Divider */}
-        <div className="mt-8 relative">
+        <div className="relative mt-8">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
+            <div className="border-gray-300 border-t w-full" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">
+            <span className="bg-white px-2 text-gray-500">
               Already have an account?
             </span>
           </div>

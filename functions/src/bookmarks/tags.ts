@@ -66,11 +66,11 @@ export const getTags = onCall<void, Promise<GetTagsResponse>>(
     const db = admin.firestore();
 
     // Obtener tags ordenados por count descendente
-    // Limitado a 100 tags
+    // Limitado a 2000 tags (suficiente para la mayoría de casos de uso)
     const snapshot = await db
       .collection("tags")
       .orderBy("count", "desc")
-      .limit(100)
+      .limit(2000)
       .get();
 
     // Mapear documentos a Tag interface

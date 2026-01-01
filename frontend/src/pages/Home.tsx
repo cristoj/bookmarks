@@ -1,4 +1,4 @@
-import { useState, useMemo, type JSX } from 'react';
+import { useState, useMemo, useEffect, type JSX } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,6 +13,7 @@ import { useTags } from '../hooks/useTags';
 import { useCreateBookmark } from '../hooks/useCreateBookmark';
 import { useUpdateBookmark } from '../hooks/useUpdateBookmark';
 import { useDeleteBookmark } from '../hooks/useDeleteBookmark';
+import { useShareTarget } from '../hooks/useShareTarget';
 import type { Bookmark, BookmarkData } from '../services/bookmarks.service';
 
 /**
@@ -56,7 +57,7 @@ interface ModalState {
 export function Home(): JSX.Element {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  
+
   // Filter state
   const [filters, setFilters] = useState<FilterValues>({
     search: '',
@@ -70,6 +71,9 @@ export function Home(): JSX.Element {
     mode: null,
     bookmark: undefined,
   });
+
+  // Share Target API - for PWA mobile sharing
+  const { sharedData, clearSharedData } = useShareTarget();
 
   // Fetch data using hooks
   const {
@@ -99,6 +103,29 @@ export function Home(): JSX.Element {
     if (!bookmarksData?.pages) return [];
     return (bookmarksData.pages as Array<{ data: Bookmark[] }>).flatMap((page) => page.data);
   }, [bookmarksData]);
+
+  // Handle PWA Share Target - auto-open create modal with shared data
+  useEffect(() => {
+    if (sharedData && user) {
+      // Create a bookmark object with shared data
+      const sharedBookmark: Partial<Bookmark> = {
+        url: sharedData.url,
+        title: sharedData.title,
+        description: sharedData.text || '',
+      };
+
+      // Open create modal with pre-filled data
+      setModalState({
+        mode: 'create',
+        bookmark: sharedBookmark as Bookmark,
+      });
+
+      // Clear shared data after handling
+      clearSharedData();
+    } else if (sharedData && !user) {
+      console.warn('[Home] Shared data received but user not authenticated');
+    }
+  }, [sharedData, user, clearSharedData]);
 
   /**
    * Handle logout

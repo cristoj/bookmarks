@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background (full bleed for maskable) -->
+  <rect width="512" height="512" fill="#1e293b"/>
+
+  <!-- Safe zone bookmark icon (80% centered) -->
+  <g transform="translate(256, 256) scale(8.5)">
+    <path
+      d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"
+      fill="#3b82f6"
+      transform="translate(-12, -11.5)"
+      stroke="none"
+    />
+  </g>
+</svg>

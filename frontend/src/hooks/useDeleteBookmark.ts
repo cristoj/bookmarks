@@ -51,11 +51,13 @@ export function useDeleteBookmark() {
     mutationFn: async (bookmarkId: string) => {
       return await bookmarksService.delete(bookmarkId);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate and refetch bookmarks, count, and tags queries
-      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
-      queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
-      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      await queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
+      await queryClient.invalidateQueries({ queryKey: ['tags'] });
+      // Force refetch immediately for tags to update autocomplete
+      await queryClient.refetchQueries({ queryKey: ['tags'] });
     },
     onError: (error: Error) => {
       // Log error for debugging

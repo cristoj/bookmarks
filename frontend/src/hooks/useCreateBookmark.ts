@@ -7,7 +7,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import bookmarksService, { type BookmarkData, type Bookmark } from '@services/bookmarks.service';
+import bookmarksService, { type BookmarkData, type Bookmark, type Tag } from '@services/bookmarks.service';
 import { addTagsToCache } from '@/utils/tagsCache';
 
 /**
@@ -54,12 +54,46 @@ export function useCreateBookmark() {
       return await bookmarksService.create(data);
     },
     onSuccess: (bookmark) => {
-      // Add tags to localStorage cache
+      // Update tags cache optimistically
       if (bookmark.tags && bookmark.tags.length > 0) {
+        // Add tags to localStorage cache
         addTagsToCache(bookmark.tags);
+
+        // Update React Query cache optimistically for immediate UI update
+        queryClient.setQueryData<Tag[]>(['tags'], (oldTags) => {
+          if (!oldTags) return oldTags;
+
+          // Create a copy of the tags array
+          const updatedTags = [...oldTags];
+
+          // Process each tag from the new bookmark
+          bookmark.tags?.forEach((tagName) => {
+            const existingIndex = updatedTags.findIndex(t => t.name === tagName);
+
+            if (existingIndex >= 0) {
+              // Tag exists, increment count
+              updatedTags[existingIndex] = {
+                ...updatedTags[existingIndex],
+                count: updatedTags[existingIndex].count + 1,
+                updatedAt: new Date().toISOString(),
+              };
+            } else {
+              // New tag, add it
+              updatedTags.push({
+                name: tagName,
+                count: 1,
+                updatedAt: new Date().toISOString(),
+              });
+            }
+          });
+
+          // Sort by count descending (same as backend)
+          return updatedTags.sort((a, b) => b.count - a.count);
+        });
       }
 
       // Invalidate and refetch bookmarks, count, and tags queries
+      // This will eventually sync with server data
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
       queryClient.invalidateQueries({ queryKey: ['tags'] });

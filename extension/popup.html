@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save Bookmark</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Login Form -->
+    <div id="login-form" style="display: none;">
+      <h2>Login</h2>
+      <input type="email" id="email" placeholder="Email" autocomplete="email">
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+      <button id="login-btn">Login</button>
+      <div id="login-error" class="error"></div>
+      <!-- Registration link commented out - register through main web app
+      <div class="footer-hint">
+        <small>Don't have an account? <a href="https://bookmarks-cristoj.web.app" target="_blank">Create one</a></small>
+      </div>
+      -->
+    </div>
+
+    <!-- Bookmark Form -->
+    <div id="bookmark-form" style="display: none;">
+      <h2>Save Bookmark</h2>
+
+      <label for="url">URL</label>
+      <input type="text" id="url" placeholder="https://example.com" readonly>
+
+      <label for="title">Title</label>
+      <input type="text" id="title" placeholder="Page title" required>
+
+      <label for="description">Description (optional)</label>
+      <textarea id="description" placeholder="Add a description..." rows="3"></textarea>
+
+      <label for="tags">Tags</label>
+      <div id="tags-container">
+        <!-- Tag input component will be rendered here by tag-input.js -->
+      </div>
+      <input type="hidden" id="tags">
+
+      <button id="save-btn" class="primary">Save Bookmark</button>
+      <button id="logout-btn" class="secondary">Logout</button>
+
+      <div id="message"></div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (local copies - required for Manifest v3 CSP) -->
+  <script src="lib/firebase-app-compat.js"></script>
+  <script src="lib/firebase-auth-compat.js"></script>
+  <script src="lib/firebase-functions-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="firebase-config.js"></script>
+  <script src="tag-input.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

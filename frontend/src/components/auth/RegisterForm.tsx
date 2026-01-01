@@ -114,7 +114,7 @@ export function RegisterForm(): JSX.Element {
         if (typeof window !== 'undefined' && (window as any).grecaptcha && typeof widgetId !== 'undefined') {
           const resp = (window as any).grecaptcha.getResponse(widgetId as number);
           if (!resp) throw new Error('reCAPTCHA not completed');
-        } else if (typeof verifier.verify === 'function') {
+        } else if (verifier && typeof verifier?.verify === 'function') {
           // @ts-ignore
           const verifyPromise = verifier.verify();
           const timeoutMs = 5000;

@@ -93,8 +93,11 @@ export function useUpdateBookmark() {
       await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       await queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
       await queryClient.invalidateQueries({ queryKey: ['tags'] });
-      // Force refetch immediately
-      await queryClient.refetchQueries({ queryKey: ['bookmarks'] });
+      // Force refetch immediately for tags and bookmarks
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['bookmarks'] }),
+        queryClient.refetchQueries({ queryKey: ['tags'] }),
+      ]);
     },
     onError: (error: Error) => {
       // Log error for debugging

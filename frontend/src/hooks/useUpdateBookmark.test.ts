@@ -77,7 +77,7 @@ describe('useUpdateBookmark', () => {
     );
   });
 
-  it('should invalidate bookmarks and tags queries on success', async () => {
+  it('should invalidate bookmarks queries but not refetch tags when tags are unchanged', async () => {
     const updateParams = {
       bookmarkId: 'bookmark-123',
       data: {
@@ -104,36 +104,53 @@ describe('useUpdateBookmark', () => {
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['bookmarks'] });
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['tags'] });
+    expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ['tags'] });
   });
 
-  it('should add tags to localStorage cache when updating with tags', async () => {
-    const updateParams = {
-      bookmarkId: 'bookmark-123',
-      data: {
-        title: 'Updated Title',
-        tags: ['react', 'typescript', 'vite'],
-      },
-    };
-
-    const mockResponse = {
-      success: true,
-    };
-
-    vi.mocked(bookmarksService.update).mockResolvedValue(mockResponse);
+  it('should apply the tag diff locally without refetching tags', async () => {
+    queryClient.setQueryData(['tags'], [
+      { name: 'react', count: 2, updatedAt: 'x' },
+      { name: 'old', count: 1, updatedAt: 'x' },
+    ]);
+    queryClient.setQueryData(['bookmarks', undefined], {
+      pages: [{ data: [{ id: 'bookmark-123', tags: ['react', 'old'] }], lastDocId: null, hasMore: false }],
+      pageParams: [undefined],
+    });
+    vi.mocked(bookmarksService.update).mockResolvedValue({ success: true });
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
     const { result } = renderHook(() => useUpdateBookmark(), {
       wrapper: createQueryWrapper(queryClient),
     });
 
-    result.current.mutate(updateParams);
+    result.current.mutate({ bookmarkId: 'bookmark-123', data: { tags: ['react', 'vite'] } });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    // Should add tags to cache
-    expect(tagsCache.addTagsToCache).toHaveBeenCalledWith(['react', 'typescript', 'vite']);
+    const tags = queryClient.getQueryData<Array<{ name: string; count: number }>>(['tags']);
+    expect(tags?.find((t) => t.name === 'react')?.count).toBe(2);
+    expect(tags?.find((t) => t.name === 'vite')?.count).toBe(1);
+    expect(tags?.find((t) => t.name === 'old')).toBeUndefined();
+    expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ['tags'] });
+  });
+
+  it('should refetch tags once when the previous tags are unknown', async () => {
+    vi.mocked(bookmarksService.update).mockResolvedValue({ success: true });
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useUpdateBookmark(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    result.current.mutate({ bookmarkId: 'not-cached', data: { tags: ['react'] } });
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['tags'] });
   });
 
   it('should not add tags to cache when updating without tags', async () => {

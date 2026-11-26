@@ -7,8 +7,8 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import bookmarksService, { type BookmarkData, type Bookmark, type Tag } from '@services/bookmarks.service';
-import { addTagsToCache } from '@/utils/tagsCache';
+import bookmarksService, { type BookmarkData, type Bookmark } from '@services/bookmarks.service';
+import { syncTagsLocally } from '@/utils/tagsLocalSync';
 
 /**
  * Hook for creating a new bookmark
@@ -54,49 +54,14 @@ export function useCreateBookmark() {
       return await bookmarksService.create(data);
     },
     onSuccess: (bookmark) => {
-      // Update tags cache optimistically
+      // Update tags locally (query + localStorage); the periodic refresh syncs with the server
       if (bookmark.tags && bookmark.tags.length > 0) {
-        // Add tags to localStorage cache
-        addTagsToCache(bookmark.tags);
-
-        // Update React Query cache optimistically for immediate UI update
-        queryClient.setQueryData<Tag[]>(['tags'], (oldTags) => {
-          if (!oldTags) return oldTags;
-
-          // Create a copy of the tags array
-          const updatedTags = [...oldTags];
-
-          // Process each tag from the new bookmark
-          bookmark.tags?.forEach((tagName) => {
-            const existingIndex = updatedTags.findIndex(t => t.name === tagName);
-
-            if (existingIndex >= 0) {
-              // Tag exists, increment count
-              updatedTags[existingIndex] = {
-                ...updatedTags[existingIndex],
-                count: updatedTags[existingIndex].count + 1,
-                updatedAt: new Date().toISOString(),
-              };
-            } else {
-              // New tag, add it
-              updatedTags.push({
-                name: tagName,
-                count: 1,
-                updatedAt: new Date().toISOString(),
-              });
-            }
-          });
-
-          // Sort by count descending (same as backend)
-          return updatedTags.sort((a, b) => b.count - a.count);
-        });
+        syncTagsLocally(queryClient, { added: bookmark.tags });
       }
 
-      // Invalidate and refetch bookmarks, count, and tags queries
-      // This will eventually sync with server data
+      // Invalidate and refetch bookmarks and count (tags are updated locally above)
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
-      queryClient.invalidateQueries({ queryKey: ['tags'] });
     },
     onError: (error: Error) => {
       // Log error for debugging

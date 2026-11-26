@@ -76,6 +76,51 @@ describe('useDeleteBookmark', () => {
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['bookmarks'] });
   });
 
+  it('should decrement the deleted bookmark tags locally without refetching tags', async () => {
+    queryClient.setQueryData(['tags'], [
+      { name: 'react', count: 2, updatedAt: 'x' },
+      { name: 'old', count: 1, updatedAt: 'x' },
+    ]);
+    queryClient.setQueryData(['bookmarks', undefined], {
+      pages: [{ data: [{ id: 'bookmark-123', tags: ['react', 'old'] }], lastDocId: null, hasMore: false }],
+      pageParams: [undefined],
+    });
+    vi.mocked(bookmarksService.delete).mockResolvedValue({ success: true });
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useDeleteBookmark(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    result.current.mutate('bookmark-123');
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    const tags = queryClient.getQueryData<Array<{ name: string; count: number }>>(['tags']);
+    expect(tags).toHaveLength(1);
+    expect(tags?.[0]).toMatchObject({ name: 'react', count: 1 });
+    expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ['tags'] });
+  });
+
+  it('should refetch tags once when the deleted bookmark is not cached', async () => {
+    vi.mocked(bookmarksService.delete).mockResolvedValue({ success: true });
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useDeleteBookmark(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    result.current.mutate('not-cached');
+
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['tags'] });
+  });
+
   it('should handle errors', async () => {
     const bookmarkId = 'bookmark-123';
 

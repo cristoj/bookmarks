@@ -8,6 +8,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import bookmarksService, { type SuccessResponse } from '@services/bookmarks.service';
+import { findCachedBookmarkTags, syncTagsLocally } from '@/utils/tagsLocalSync';
 
 /**
  * Hook for deleting a bookmark
@@ -51,13 +52,19 @@ export function useDeleteBookmark() {
     mutationFn: async (bookmarkId: string) => {
       return await bookmarksService.delete(bookmarkId);
     },
-    onSuccess: async () => {
-      // Invalidate and refetch bookmarks, count, and tags queries
+    onSuccess: async (_data, bookmarkId) => {
+      // Decrement the deleted bookmark's tags locally; if they are unknown,
+      // fall back to a single tags refetch
+      const removedTags = findCachedBookmarkTags(queryClient, bookmarkId);
+      if (removedTags) {
+        syncTagsLocally(queryClient, { removed: removedTags });
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ['tags'] });
+      }
+
+      // Invalidate and refetch bookmarks and count
       await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       await queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
-      await queryClient.invalidateQueries({ queryKey: ['tags'] });
-      // Force refetch immediately for tags to update autocomplete
-      await queryClient.refetchQueries({ queryKey: ['tags'] });
     },
     onError: (error: Error) => {
       // Log error for debugging

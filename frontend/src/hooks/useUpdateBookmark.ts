@@ -10,7 +10,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import bookmarksService, { type BookmarkData, type SuccessResponse } from '@services/bookmarks.service';
 import storageService from '@services/storage.service';
-import { addTagsToCache } from '@/utils/tagsCache';
+import { findCachedBookmarkTags, syncTagsLocally } from '@/utils/tagsLocalSync';
 
 /**
  * Parameters for updating a bookmark
@@ -84,20 +84,26 @@ export function useUpdateBookmark() {
       return await bookmarksService.update(bookmarkId, updatedData);
     },
     onSuccess: async (_data, variables) => {
-      // Add tags to localStorage cache if they were updated
-      if (variables.data.tags && variables.data.tags.length > 0) {
-        addTagsToCache(variables.data.tags);
+      // Update tags locally from the diff against the cached bookmark; if the
+      // previous tags are unknown, fall back to a single tags refetch
+      const newTags = variables.data.tags;
+      if (newTags) {
+        const previousTags = findCachedBookmarkTags(queryClient, variables.bookmarkId);
+        if (previousTags) {
+          const has = (list: string[], name: string) =>
+            list.some((tag) => tag.trim().toLowerCase() === name.trim().toLowerCase());
+          syncTagsLocally(queryClient, {
+            added: newTags.filter((tag) => !has(previousTags, tag)),
+            removed: previousTags.filter((tag) => !has(newTags, tag)),
+          });
+        } else {
+          await queryClient.invalidateQueries({ queryKey: ['tags'] });
+        }
       }
 
-      // Invalidate and refetch bookmarks, count, and tags queries
+      // Invalidate and refetch bookmarks and count
       await queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
       await queryClient.invalidateQueries({ queryKey: ['bookmarks-count'] });
-      await queryClient.invalidateQueries({ queryKey: ['tags'] });
-      // Force refetch immediately for tags and bookmarks
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['bookmarks'] }),
-        queryClient.refetchQueries({ queryKey: ['tags'] }),
-      ]);
     },
     onError: (error: Error) => {
       // Log error for debugging

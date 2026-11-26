@@ -74,7 +74,7 @@ describe('useCreateBookmark', () => {
     expect(bookmarksService.create).toHaveBeenCalledWith(mockBookmarkData);
   });
 
-  it('should invalidate bookmarks and tags queries on success', async () => {
+  it('should invalidate bookmarks and count queries but not refetch tags on success', async () => {
     const mockBookmarkData = {
       url: 'https://example.com',
       title: 'Example Site',
@@ -108,10 +108,10 @@ describe('useCreateBookmark', () => {
     });
 
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['bookmarks'] });
-    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ['tags'] });
+    expect(invalidateSpy).not.toHaveBeenCalledWith({ queryKey: ['tags'] });
   });
 
-  it('should add tags to localStorage cache when bookmark has tags', async () => {
+  it('should update the tags list locally when bookmark has tags', async () => {
     const mockBookmarkData = {
       url: 'https://example.com',
       title: 'Example Site',
@@ -131,6 +131,7 @@ describe('useCreateBookmark', () => {
     };
 
     vi.mocked(bookmarksService.create).mockResolvedValue(mockCreatedBookmark);
+    queryClient.setQueryData(['tags'], [{ name: 'react', count: 2, updatedAt: 'x' }]);
 
     const { result } = renderHook(() => useCreateBookmark(), {
       wrapper: createQueryWrapper(queryClient),
@@ -142,8 +143,10 @@ describe('useCreateBookmark', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    // Should add tags to cache
-    expect(tagsCache.addTagsToCache).toHaveBeenCalledWith(['react', 'javascript']);
+    // Counts are bumped locally and the new tag is added, without a refetch
+    const tags = queryClient.getQueryData<Array<{ name: string; count: number }>>(['tags']);
+    expect(tags?.find((t) => t.name === 'react')?.count).toBe(3);
+    expect(tags?.find((t) => t.name === 'javascript')?.count).toBe(1);
   });
 
   it('should not add tags to cache when bookmark has no tags', async () => {

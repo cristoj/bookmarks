@@ -1,7 +1,7 @@
 // Cristoj Bookmarks - Service Worker
 // Handles PWA installation, caching, and Share Target API
 
-const CACHE_NAME = 'bookmarks-v4';
+const CACHE_NAME = 'bookmarks-v5';
 const OFFLINE_URL = '/';
 
 // Files to cache on install
@@ -93,7 +93,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first strategy for assets
+  // Network-first strategy for navigations so the app shell (and the hashed
+  // bundles it references) is always fresh; fall back to cache when offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(OFFLINE_URL, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match(OFFLINE_URL))
+    );
+    return;
+  }
+
+  // Cache-first strategy for static assets (hashed filenames are immutable)
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {

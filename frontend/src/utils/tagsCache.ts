@@ -46,6 +46,8 @@ export function getTagsFromCache(): Tag[] | null {
  * Save tags to localStorage cache
  *
  * @param tags - Tags array to cache
+ * @param touchTimestamp - Whether to record "now" as the last server sync (default: true).
+ *   Pass false for local edits so they don't postpone the periodic refresh.
  *
  * @example
  * ```typescript
@@ -53,10 +55,12 @@ export function getTagsFromCache(): Tag[] | null {
  * saveTagsToCache(tags);
  * ```
  */
-export function saveTagsToCache(tags: Tag[]): void {
+export function saveTagsToCache(tags: Tag[], touchTimestamp: boolean = true): void {
   try {
     localStorage.setItem(TAGS_CACHE_KEY, JSON.stringify(tags));
-    localStorage.setItem(TAGS_TIMESTAMP_KEY, Date.now().toString());
+    if (touchTimestamp) {
+      localStorage.setItem(TAGS_TIMESTAMP_KEY, Date.now().toString());
+    }
   } catch (error) {
     console.error('Error saving tags to cache:', error);
   }
@@ -96,7 +100,7 @@ export function addTagToCache(tagName: string): void {
     // Sort by count descending
     tags.sort((a, b) => b.count - a.count);
 
-    saveTagsToCache(tags);
+    saveTagsToCache(tags, false);
   } catch (error) {
     console.error('Error adding tag to cache:', error);
   }
@@ -143,7 +147,7 @@ export function removeTagFromCache(tagName: string): void {
         tags[existingIndex].updatedAt = new Date().toISOString();
       }
 
-      saveTagsToCache(tags);
+      saveTagsToCache(tags, false);
     }
   } catch (error) {
     console.error('Error removing tag from cache:', error);

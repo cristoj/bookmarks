@@ -37,6 +37,7 @@ describe('useTags', () => {
     vi.clearAllMocks();
     // Reset localStorage mock
     vi.mocked(tagsCache.getTagsFromCache).mockReturnValue(null);
+    vi.mocked(tagsCache.getCacheTimestamp).mockReturnValue(null);
   });
 
   it('should fetch tags successfully', async () => {
@@ -160,15 +161,62 @@ describe('useTags', () => {
     // Should immediately have cached data
     expect(result.current.data).toEqual(cachedTags);
 
+    // With initialData the query is already "success", so wait for the fresh data
     await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true);
+      expect(result.current.data).toEqual(freshTags);
     });
-
-    // After fetch, should have fresh data
-    expect(result.current.data).toEqual(freshTags);
 
     // Should have fetched from API despite having cache
     expect(bookmarksService.getTags).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not call the API on mount when the cache is younger than 7 days', async () => {
+    const cachedTags = [
+      { name: 'cached-tag', count: 25, updatedAt: new Date().toISOString() },
+    ];
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+
+    vi.mocked(tagsCache.getTagsFromCache).mockReturnValue(cachedTags);
+    vi.mocked(tagsCache.getCacheTimestamp).mockReturnValue(oneDayAgo);
+    vi.mocked(bookmarksService.getTags).mockResolvedValue([]);
+
+    const { result } = renderHook(() => useTags(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    // Give any (unexpected) fetch a chance to start
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(result.current.data).toEqual(cachedTags);
+    expect(bookmarksService.getTags).not.toHaveBeenCalled();
+  });
+
+  it('should refetch on mount when the cache is older than 7 days', async () => {
+    const cachedTags = [
+      { name: 'old-tag', count: 5, updatedAt: new Date().toISOString() },
+    ];
+    const freshTags = [
+      { name: 'new-tag', count: 9, updatedAt: new Date().toISOString() },
+    ];
+    const eightDaysAgo = Date.now() - 8 * 24 * 60 * 60 * 1000;
+
+    vi.mocked(tagsCache.getTagsFromCache).mockReturnValue(cachedTags);
+    vi.mocked(tagsCache.getCacheTimestamp).mockReturnValue(eightDaysAgo);
+    vi.mocked(bookmarksService.getTags).mockResolvedValue(freshTags);
+
+    const { result } = renderHook(() => useTags(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+
+    // Cached data is shown immediately, then replaced by the network result
+    expect(result.current.data).toEqual(cachedTags);
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(freshTags);
+    });
+
+    expect(bookmarksService.getTags).toHaveBeenCalledTimes(1);
+    expect(tagsCache.saveTagsToCache).toHaveBeenCalledWith(freshTags);
   });
 
   it('should return tags ordered by count', async () => {

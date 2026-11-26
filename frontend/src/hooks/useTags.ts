@@ -7,7 +7,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import bookmarksService, { type Tag } from '@services/bookmarks.service';
-import { getTagsFromCache, saveTagsToCache } from '@/utils/tagsCache';
+import {
+  getCacheTimestamp,
+  getTagsFromCache,
+  saveTagsToCache,
+} from '@/utils/tagsCache';
+
+/** Tags are refreshed from the API at most once a week (create/update/delete still invalidate them). */
+const TAGS_STALE_TIME_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Hook for fetching tags with localStorage cache
@@ -88,8 +95,12 @@ export function useTags() {
       const cached = getTagsFromCache();
       return cached || undefined;
     },
-    // Always fetch fresh data on mount, but show cached data first
-    staleTime: 0,
+    // Age of the cached data comes from the last real fetch; a cache without
+    // a timestamp is treated as stale
+    initialDataUpdatedAt: () => getCacheTimestamp() ?? 0,
+    // Show cached data first and refetch on mount only when it is older than a week
+    staleTime: TAGS_STALE_TIME_MS,
+    refetchOnMount: true,
     // Keep cache for 5 minutes
     gcTime: 5 * 60 * 1000,
   });

@@ -93,12 +93,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-first strategy for navigations so the app shell (and the hashed
-  // bundles it references) is always fresh; fall back to cache when offline
+  // Stale-while-revalidate for navigations: serve the cached app shell
+  // instantly and refresh it from the network in the background, so the next
+  // load gets the latest shell and bundles. Without a cached shell, use network.
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
+      caches.match(OFFLINE_URL).then((cached) => {
+        const refresh = fetch(event.request).then((response) => {
           if (response && response.status === 200 && response.type === 'basic') {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -106,8 +107,14 @@ self.addEventListener('fetch', (event) => {
             });
           }
           return response;
-        })
-        .catch(() => caches.match(OFFLINE_URL))
+        });
+
+        if (cached) {
+          event.waitUntil(refresh.catch(() => {}));
+          return cached;
+        }
+        return refresh.catch(() => caches.match(OFFLINE_URL));
+      })
     );
     return;
   }
